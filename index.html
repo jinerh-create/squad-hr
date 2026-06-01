@@ -38,6 +38,8 @@
 .dark .card{background:#1C2218;border-color:#202618;}
 .dark .stat-card{background:#1C2218;border-color:#202618;}
 .dark .emp-card{background:#1C2218;border-color:#202618;}
+.dark .emp-card-hdr::after{background:#1C2218;}
+.dark .emp-card-av-ring{background:#1C2218;}
 .dark .form-input{background:#141810;border-color:#202618;color:#D8DDD0;}
 .dark .form-input:focus{border-color:var(--a);}
 .dark table{color:#D8DDD0;}
@@ -181,12 +183,18 @@ select.form-input option{background:var(--s2);}
 .filter-btn.active{border-color:var(--a);color:var(--a);background:rgba(127,141,116,.12);}
 
 /* EMPLOYEE CARD */
-.emp-card{background:var(--s1);border:1px solid var(--b);border-radius:16px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;}
-.emp-card:hover{border-color:var(--a);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.emp-card{background:var(--s1);border:1px solid var(--b);border-radius:22px;overflow:hidden;cursor:pointer;transition:all .22s;box-shadow:0 2px 14px rgba(0,0,0,.05);}
+.emp-card:hover{border-color:var(--a);transform:translateY(-5px);box-shadow:0 20px 48px rgba(127,141,116,.20);}
 .emp-card .av{width:64px;height:64px;font-size:22px;margin:0 auto 12px;}
-.emp-card-name{font-size:14px;font-weight:700;color:var(--t);margin-bottom:3px;}
-.emp-card-role{font-size:12px;color:var(--t3);margin-bottom:8px;}
-.emp-card-dept{font-size:11px;color:var(--t2);margin-bottom:10px;}
+.emp-card-hdr{height:80px;background:linear-gradient(135deg,var(--a) 0%,var(--a2) 100%);padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;}
+.emp-card-hdr::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:24px;background:var(--s1);border-radius:50% 50% 0 0 / 100% 100% 0 0;}
+.emp-card-body{padding:0 20px 20px;text-align:center;}
+.emp-card-av-wrap{margin:-52px auto 10px;position:relative;z-index:2;display:flex;justify-content:center;}
+.emp-card-av-ring{padding:3px;background:var(--s1);border-radius:18px;display:inline-block;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.emp-card-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--t);margin-bottom:2px;line-height:1.2;}
+.emp-card-role{font-size:12px;font-weight:600;color:var(--a);margin-bottom:4px;}
+.emp-card-dept{font-size:11px;color:var(--t3);margin-bottom:10px;}
+.emp-card-divider{height:1px;background:var(--b);margin:10px 0 14px;}
 
 /* KANBAN */
 .kanban{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:14px;overflow-x:auto;}
@@ -1704,18 +1712,23 @@ function renderEmployees() {
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
     ${filtered.map(e=>`
       <div class="emp-card" onclick="viewEmployee(${e.id})">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          ${e.nationality?`<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;background:rgba(99,102,241,.1);color:#6366F1;display:inline-flex;align-items:center;gap:5px;">${natFlag(e.nationality)}${e.nationality}</span>`:'<span></span>'}
-          ${badge(e.status)}
+        <div class="emp-card-hdr">
+          ${e.nationality?`<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(4px);display:inline-flex;align-items:center;gap:5px;">${natFlag(e.nationality)}${e.nationality}</span>`:'<span></span>'}
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;display:inline-flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#fff;display:inline-block"></span>${e.status==='active'?'Active':e.status==='remote'?'Remote':e.status==='on_leave'?'On Leave':'Inactive'}</span>
         </div>
-        ${rankRingAv(e,64)}
-        <div class="emp-card-name">${e.name}</div>
-        <div class="emp-card-role">${e.role}</div>
-        <div class="emp-card-dept">${e.dept} · ${e.type}</div>
-        <div style="margin-top:6px">${empLevelBadge(e,true)}</div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editEmployee(${e.id})">Edit</button>
-          <button class="btn btn-sm" style="background:rgba(127,141,116,.15);color:var(--a)" onclick="event.stopPropagation();viewEmployee(${e.id})">View Profile</button>
+        <div class="emp-card-body">
+          <div class="emp-card-av-wrap">
+            <div class="emp-card-av-ring">${rankRingAv(e,68)}</div>
+          </div>
+          <div class="emp-card-name">${e.name}</div>
+          <div class="emp-card-role">${e.role}</div>
+          <div class="emp-card-dept">${e.dept} · ${e.type}</div>
+          <div style="margin-bottom:14px">${empLevelBadge(e,true)}</div>
+          <div class="emp-card-divider"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="event.stopPropagation();editEmployee(${e.id})">Edit</button>
+            <button class="btn btn-sm" style="flex:1;justify-content:center;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff" onclick="event.stopPropagation();viewEmployee(${e.id})">Profile</button>
+          </div>
         </div>
       </div>`).join('')}
   </div>`}`;
