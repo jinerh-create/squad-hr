@@ -1,0 +1,9 @@
+name = "squad-hr"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "squad-hr-db"
+database_id = "PASTE_DATABASE_ID_HERE"
+migrations_dir = "migrations"

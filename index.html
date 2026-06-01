@@ -810,6 +810,7 @@ select.form-input option{background:var(--s2);}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
       <span id="notif-count-badge" class="notif-badge" style="display:none">0</span>
     </button>
+    <span id="sync-badge" style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(127,141,116,.15);color:#7F8D74;letter-spacing:.03em;cursor:default" title="Cloud sync status">☁ Synced</span>
     <button id="dark-toggle" class="hdr-btn" onclick="toggleDark()" title="Toggle dark mode" style="font-size:16px;width:36px;height:36px">🌙</button>
     <div class="hdr-av" id="hdr-av" onclick="doLogout()" title="Sign out" style="cursor:pointer">?</div>
   </div>
@@ -983,6 +984,8 @@ function doLogin() {
     renderSidebarCalendar();
     // Open Finance folder by default so Budget/Expenses is visible
     setTimeout(()=>{ openFolder('fin'); updateNotifBadge(); }, 100);
+    // Load latest data from cloud (async — re-renders when done)
+    _loadFromCloud();
   } catch(e) {
     errEl.textContent = 'Login error: ' + (e.message || e);
     errEl.style.display = 'block';
@@ -1103,6 +1106,109 @@ const eomRecords = [];
 // ==================== STORAGE ====================
 function saveData() {
   localStorage.setItem('squad_hr', JSON.stringify({employees, leaves, payroll, attendance, attCorrRequests, suggestions, careerPaths, positions, calNotes, locations, accommodations, transfers, mapMarkers, calEvents, discounts, eomRecords, meetings, notices, evaluations, bonusTypes, rosterEntries, recognitions, allowances, bonuses, salaryAdvances, trainings, contracts, employeeDocs, loans, loanPayments, messages, jobs, candidates, probations, resignations, exitInterviews, departments, gpsLogs, rosterSwapRequests, rosterTemplates, expenses, bIncome, bBills, bSavings, bNotes, bSettings, hofRecords, moodLogs}));
+  _scheduleCloudSync();
+}
+
+// ── Cloud Sync (Cloudflare D1) ──────────────────────────────────────────────
+const _SYNC = {
+  token: 'sqhr_sync_2026',   // must match SYNC_TOKEN env var in CF Pages
+  url: '/api/sync',
+  timer: null,
+  status: 'idle'             // idle | saving | saved | error
+};
+
+function _scheduleCloudSync() {
+  if (!_SYNC.token) return;
+  clearTimeout(_SYNC.timer);
+  _SYNC.timer = setTimeout(_doCloudSync, 1500);
+}
+
+async function _doCloudSync() {
+  if (!_SYNC.token) return;
+  const payload = {
+    main:        JSON.parse(localStorage.getItem('squad_hr') || '{}'),
+    fingerprint: fingerprintData,
+    roster_v2:   rosterV2,
+    emp_order:   empOrder,
+    emp_colors:  empColors
+  };
+  try {
+    _SYNC.status = 'saving';
+    _updateSyncBadge();
+    const res = await fetch(_SYNC.url, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + _SYNC.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    _SYNC.status = res.ok ? 'saved' : 'error';
+  } catch(e) {
+    _SYNC.status = 'error';
+  }
+  _updateSyncBadge();
+  if (_SYNC.status === 'saved') setTimeout(() => { _SYNC.status = 'idle'; _updateSyncBadge(); }, 3000);
+}
+
+function _updateSyncBadge() {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  const cfg = {
+    idle:   { text: '☁ Synced',  color: 'rgba(127,141,116,.15)', tc: '#7F8D74' },
+    saving: { text: '☁ Saving…', color: 'rgba(245,158,11,.15)',  tc: '#F59E0B' },
+    saved:  { text: '☁ Saved',   color: 'rgba(127,141,116,.2)',  tc: '#7F8D74' },
+    error:  { text: '☁ Offline', color: 'rgba(239,68,68,.12)',   tc: '#EF4444' }
+  }[_SYNC.status] || cfg.idle;
+  el.textContent = cfg.text;
+  el.style.background = cfg.color;
+  el.style.color = cfg.tc;
+}
+
+async function _loadFromCloud() {
+  if (!_SYNC.token) return;
+  try {
+    const res = await fetch(_SYNC.url, {
+      headers: { 'Authorization': 'Bearer ' + _SYNC.token }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.main) return;
+
+    // Cloud is authoritative — replace local state entirely
+    localStorage.setItem('squad_hr', JSON.stringify(data.main));
+    if (data.fingerprint) {
+      Object.keys(fingerprintData).forEach(k => delete fingerprintData[k]);
+      Object.assign(fingerprintData, data.fingerprint);
+      localStorage.setItem('squad_fingerprint', JSON.stringify(fingerprintData));
+    }
+    if (data.roster_v2) {
+      Object.keys(rosterV2).forEach(k => delete rosterV2[k]);
+      Object.assign(rosterV2, data.roster_v2);
+      localStorage.setItem('squad_roster_v2', JSON.stringify(rosterV2));
+    }
+    if (data.emp_order) {
+      empOrder.length = 0;
+      data.emp_order.forEach(x => empOrder.push(x));
+      localStorage.setItem('squad_emp_order', JSON.stringify(empOrder));
+    }
+    if (data.emp_colors) {
+      Object.assign(empColors, data.emp_colors);
+      localStorage.setItem('squad_emp_colors', JSON.stringify(empColors));
+    }
+
+    // Clear and reload all in-memory arrays from updated localStorage
+    [employees, leaves, payroll, attendance, attCorrRequests, suggestions, careerPaths,
+     positions, locations, accommodations, transfers, mapMarkers, calEvents, discounts,
+     eomRecords, meetings, notices, evaluations, rosterEntries, recognitions, allowances,
+     bonuses, salaryAdvances, trainings, contracts, employeeDocs, loans, loanPayments,
+     messages, probations, resignations, exitInterviews, departments, gpsLogs,
+     rosterSwapRequests, rosterTemplates, hofRecords, moodLogs].forEach(arr => arr.length = 0);
+    Object.keys(calNotes).forEach(k => delete calNotes[k]);
+    loadData();
+    render();
+    _SYNC.status = 'saved'; _updateSyncBadge();
+    setTimeout(() => { _SYNC.status = 'idle'; _updateSyncBadge(); }, 3000);
+  } catch(e) {
+    console.warn('Cloud load failed:', e.message);
+  }
 }
 
 function loadData() {
@@ -3089,6 +3195,7 @@ window.saveFP = function(empId, dateStr, field, val){
   if(!fingerprintData[k]) fingerprintData[k]={};
   if(val) fingerprintData[k][field]=val; else delete fingerprintData[k][field];
   localStorage.setItem('squad_fingerprint',JSON.stringify(fingerprintData));
+  _scheduleCloudSync();
   render();
 };
 let empOrder = JSON.parse(localStorage.getItem('squad_emp_order')||'[]');
@@ -3117,6 +3224,7 @@ window.setRosterBox = function(empId, dateStr, boxIdx, val){
   if(!rosterV2[k]) rosterV2[k]=['','','',''];
   rosterV2[k][boxIdx]=val;
   localStorage.setItem('squad_roster_v2',JSON.stringify(rosterV2));
+  _scheduleCloudSync();
   render();
 };
 window.toggleDutySlot = function(empId, dateStr, slotKey){
