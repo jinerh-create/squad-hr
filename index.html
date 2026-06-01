@@ -3188,6 +3188,7 @@ function buildMonthOpts(selMonth) {
 function renderDutyRoster() {
   const tabs = [
     {k:'weekly',    label:'📅 Weekly'},
+    {k:'inout',     label:'🖐 In/Out'},
     {k:'monthly',   label:'📆 Monthly'},
     {k:'analytics', label:'📊 Analytics'},
     {k:'heatmap',   label:'🌡 Heatmap'},
@@ -3236,6 +3237,7 @@ function renderDutyRoster() {
   const weekLabel = dates[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
   if(rosterView==='monthly') return renderRosterMonthly(tabBar, canEdit);
+  if(rosterView==='inout') return renderRosterInOut(tabBar, canEdit, dates);
   if(rosterView==='analytics') return renderRosterAnalytics(tabBar);
   if(rosterView==='heatmap') return renderRosterHeatmap(tabBar);
   if(rosterView==='swaps') return renderRosterSwaps(tabBar, canEdit);
@@ -3397,90 +3399,121 @@ function renderDutyRoster() {
       </table>
     </div>
   </div>
+  <div style="margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(127,141,116,.07);border:1px solid rgba(127,141,116,.15);display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px">🖐</span>
+    <div style="flex:1;font-size:12px;color:var(--t2)">View clock-in / clock-out times in the <strong style="color:var(--t)">In/Out</strong> tab above.</div>
+    <button onclick="rosterView='inout';render()" style="font-size:12px;padding:6px 14px;border-radius:8px;border:1px solid rgba(127,141,116,.3);background:rgba(127,141,116,.12);color:#7F8D74;font-weight:600;cursor:pointer;font-family:inherit">🖐 In/Out →</button>
+  </div>
 
-  <!-- Fingerprint Attendance Table -->
-  ${empList.length?`
-  <div style="margin-top:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:14px;font-weight:800;color:var(--t);letter-spacing:.04em">🖐 Fingerprint Attendance</div>
-        <div style="font-size:11px;color:var(--t3);margin-top:2px">Check-in & check-out times · ${weekLabel}</div>
-      </div>
-      <div style="font-size:10px;color:var(--t3);padding:5px 10px;border-radius:6px;background:var(--s2);border:1px solid var(--b)">Ready for fingerprint machine integration</div>
+`;
+}
+
+function renderRosterInOut(tabBar, canEdit, dates) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  const weekLabel = dates[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const empListRaw = employees.filter(e=>e.status==='active' && (!rosterDeptFilter||e.dept===rosterDeptFilter));
+  const empList = empOrder.length
+    ? [...empListRaw].sort((a,b)=>{ const ai=empOrder.indexOf(a.id), bi2=empOrder.indexOf(b.id); return (ai===-1?9999:ai)-(bi2===-1?9999:bi2); })
+    : empListRaw;
+
+  // Week navigation controls
+  const toolbar = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <div style="display:flex;gap:4px">
+      <button onclick="rosterWeek(-1)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--b);background:var(--s1);color:var(--t);font-size:13px;cursor:pointer;font-family:inherit">← Prev</button>
+      <button onclick="rosterWeek(0)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--b);background:var(--s2);color:var(--t2);font-size:12px;cursor:pointer;font-family:inherit">Today</button>
+      <button onclick="rosterWeek(1)" style="padding:7px 12px;border-radius:8px;border:1px solid var(--b);background:var(--s1);color:var(--t);font-size:13px;cursor:pointer;font-family:inherit">Next →</button>
     </div>
-    <div style="overflow-x:auto;border-radius:14px;border:1px solid var(--b);box-shadow:0 2px 10px rgba(0,0,0,.06);background:var(--s1)">
-      <table style="width:100%;border-collapse:collapse;min-width:700px;font-size:11px">
-        <thead>
-          <tr style="background:linear-gradient(135deg,#222222,#3A2210)">
-            <th style="padding:11px 16px;text-align:left;font-size:11px;font-weight:800;color:#DDD1BF;letter-spacing:.06em;min-width:170px;position:sticky;left:0;background:#222222">EMPLOYEE</th>
-            ${dates.map((d,i)=>{
-              const isToday=d.getTime()===today.getTime();
-              const isWeekend=i>=5;
-              return `<th style="padding:10px 6px;text-align:center;font-size:10px;font-weight:800;color:${isWeekend?'#F59E0B':isToday?'#7F8D74':'#DDD1BF'};min-width:100px;${isToday?'background:rgba(127,141,116,.12)':''}">
-                <div>${DAY_LABELS[i]}</div>
-                <div style="font-size:12px;font-weight:${isToday?900:600};margin-top:1px">${d.getDate()}</div>
-              </th>`;
-            }).join('')}
-            <th style="padding:10px 8px;text-align:center;font-size:10px;font-weight:800;color:#DDD1BF;min-width:70px">HRS</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${empList.map((e,ri)=>{
-            const eColor2=empColors[e.id]||EMP_COLOR_PALETTE[ri%EMP_COLOR_PALETTE.length];
-            const rowBg2=ri%2===0?'var(--s1)':'var(--s2)';
-            let totalMins=0;
-            const dayCells=dates.map((d,di)=>{
-              const dKey3=dateKey(d);
-              const fpKey=e.id+'_'+dKey3;
-              const fp=fingerprintData[fpKey]||{};
-              const isToday=d.getTime()===today.getTime();
-              const isWeekend=di>=5;
-              const cellBg=isToday?'rgba(127,141,116,.04)':isWeekend?'rgba(148,163,184,.04)':'';
-              if(fp.in&&fp.out){
-                const [ih,im]=fp.in.split(':').map(Number);
-                const [oh,om]=fp.out.split(':').map(Number);
-                let mins=(oh*60+om)-(ih*60+im); if(mins<0)mins+=1440;
-                totalMins+=mins;
-              }
-              return `<td style="padding:4px 4px;background:${cellBg};border-right:1px solid var(--b);${isToday?'border-left:2px solid rgba(127,141,116,.25);border-right:2px solid rgba(127,141,116,.25)':''}">
-                <div style="display:flex;flex-direction:column;gap:2px">
-                  <div style="display:flex;align-items:center;gap:3px;border-radius:5px;border:1px solid ${fp.in?eColor2+'44':'var(--b)'};background:${fp.in?eColor2+'11':'transparent'};padding:2px 4px">
-                    <span style="font-size:8px;font-weight:700;color:${fp.in?eColor2:'var(--t3)'};min-width:14px">IN</span>
-                    ${canEdit
-                      ?`<input type="time" value="${fp.in||''}" onchange="saveFP(${e.id},'${dKey3}','in',this.value)"
-                          style="flex:1;border:none;background:transparent;font-size:9px;font-weight:600;color:${fp.in?eColor2:'var(--t3)'};outline:none;font-family:inherit;padding:0;width:56px">`
-                      :`<span style="font-size:9px;font-weight:600;color:${fp.in?eColor2:'var(--t3)'}">${fp.in||'—'}</span>`}
-                  </div>
-                  <div style="display:flex;align-items:center;gap:3px;border-radius:5px;border:1px solid ${fp.out?'#EF444444':'var(--b)'};background:${fp.out?'rgba(239,68,68,.06)':'transparent'};padding:2px 4px">
-                    <span style="font-size:8px;font-weight:700;color:${fp.out?'#EF4444':'var(--t3)'};min-width:14px">OUT</span>
-                    ${canEdit
-                      ?`<input type="time" value="${fp.out||''}" onchange="saveFP(${e.id},'${dKey3}','out',this.value)"
-                          style="flex:1;border:none;background:transparent;font-size:9px;font-weight:600;color:${fp.out?'#EF4444':'var(--t3)'};outline:none;font-family:inherit;padding:0;width:56px">`
-                      :`<span style="font-size:9px;font-weight:600;color:${fp.out?'#EF4444':'var(--t3)'}">${fp.out||'—'}</span>`}
-                  </div>
-                </div>
-              </td>`;
-            }).join('');
-            const hrs=Math.floor(totalMins/60), mins2=totalMins%60;
-            const hrsLabel=totalMins?`${hrs}h${mins2?` ${mins2}m`:''}`:'-';
-            return `<tr style="background:${rowBg2};border-bottom:1px solid var(--b)">
-              <td style="padding:8px 12px;border-right:2px solid var(--b);border-left:3px solid ${eColor2};position:sticky;left:0;background:${rowBg2}">
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div style="width:8px;height:8px;border-radius:50%;background:${eColor2};flex-shrink:0"></div>
-                  ${e.photo?`<img src="${e.photo}" style="width:26px;height:26px;border-radius:8px;object-fit:contain;object-position:center;flex-shrink:0">`:`<div style="width:26px;height:26px;border-radius:50%;background:${avatarBg(e.name)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0">${initials(e.name)}</div>`}
-                  <span style="font-size:12px;font-weight:700;color:var(--t)">${e.name}</span>
-                </div>
-              </td>
-              ${dayCells}
-              <td style="padding:8px 6px;text-align:center;border-left:2px solid var(--b)">
-                <div style="font-size:12px;font-weight:800;color:${totalMins?'var(--a)':'var(--t3)'}"><br>${hrsLabel}</div>
-              </td>
-            </tr>`;
+    <div style="font-size:11px;color:var(--t3);padding:5px 10px;border-radius:6px;background:var(--s2);border:1px solid var(--b)">🖐 Ready for fingerprint machine integration</div>
+  </div>`;
+
+  return `
+  <div class="section-hdr" style="flex-wrap:wrap;gap:12px">
+    <div>
+      <div class="section-title">🖐 In/Out Fingerprint Attendance</div>
+      <div class="section-sub">📅 ${weekLabel} · Clock-in & clock-out times</div>
+    </div>
+    ${toolbar}
+  </div>
+  ${tabBar}
+
+  ${empList.length ? `
+  <div style="overflow-x:auto;border-radius:14px;border:1px solid var(--b);box-shadow:0 2px 10px rgba(0,0,0,.06);background:var(--s1)">
+    <table style="width:100%;border-collapse:collapse;min-width:700px;font-size:11px">
+      <thead>
+        <tr style="background:linear-gradient(135deg,#222222,#3A2210)">
+          <th style="padding:11px 16px;text-align:left;font-size:11px;font-weight:800;color:#DDD1BF;letter-spacing:.06em;min-width:170px;position:sticky;left:0;background:#222222">EMPLOYEE</th>
+          ${dates.map((d,i)=>{
+            const isToday=d.getTime()===today.getTime();
+            const isWeekend=i>=5;
+            return `<th style="padding:10px 6px;text-align:center;font-size:10px;font-weight:800;color:${isWeekend?'#F59E0B':isToday?'#7F8D74':'#DDD1BF'};min-width:110px;${isToday?'background:rgba(127,141,116,.12)':''}">
+              <div>${DAY_LABELS[i]}</div>
+              <div style="font-size:12px;font-weight:${isToday?900:600};margin-top:1px">${d.getDate()}</div>
+            </th>`;
           }).join('')}
-        </tbody>
-      </table>
-    </div>
-  </div>`:''}`;
+          <th style="padding:10px 8px;text-align:center;font-size:10px;font-weight:800;color:#DDD1BF;min-width:70px">HRS</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${empList.map((e,ri)=>{
+          const eColor2=empColors[e.id]||EMP_COLOR_PALETTE[ri%EMP_COLOR_PALETTE.length];
+          const rowBg2=ri%2===0?'var(--s1)':'var(--s2)';
+          let totalMins=0;
+          const dayCells=dates.map((d,di)=>{
+            const dKey3=dateKey(d);
+            const fpKey=e.id+'_'+dKey3;
+            const fp=fingerprintData[fpKey]||{};
+            const isToday=d.getTime()===today.getTime();
+            const isWeekend=di>=5;
+            const cellBg=isToday?'rgba(127,141,116,.04)':isWeekend?'rgba(148,163,184,.04)':'';
+            if(fp.in&&fp.out){
+              const [ih,im]=fp.in.split(':').map(Number);
+              const [oh,om]=fp.out.split(':').map(Number);
+              let mins=(oh*60+om)-(ih*60+im); if(mins<0)mins+=1440;
+              totalMins+=mins;
+            }
+            return `<td style="padding:5px 5px;background:${cellBg};border-right:1px solid var(--b);${isToday?'border-left:2px solid rgba(127,141,116,.25);border-right:2px solid rgba(127,141,116,.25)':''}">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="display:flex;align-items:center;gap:3px;border-radius:6px;border:1px solid ${fp.in?eColor2+'55':'var(--b)'};background:${fp.in?eColor2+'11':'transparent'};padding:3px 5px">
+                  <span style="font-size:9px;font-weight:800;color:${fp.in?eColor2:'var(--t3)'};min-width:16px">IN</span>
+                  ${canEdit
+                    ?`<input type="time" value="${fp.in||''}" onchange="saveFP('${e.id}','${dKey3}','in',this.value)"
+                        style="flex:1;border:none;background:transparent;font-size:10px;font-weight:700;color:${fp.in?eColor2:'var(--t3)'};outline:none;font-family:inherit;padding:0;width:60px">`
+                    :`<span style="font-size:10px;font-weight:700;color:${fp.in?eColor2:'var(--t3)'}">${fp.in||'—'}</span>`}
+                </div>
+                <div style="display:flex;align-items:center;gap:3px;border-radius:6px;border:1px solid ${fp.out?'rgba(239,68,68,.4)':'var(--b)'};background:${fp.out?'rgba(239,68,68,.07)':'transparent'};padding:3px 5px">
+                  <span style="font-size:9px;font-weight:800;color:${fp.out?'#EF4444':'var(--t3)'};min-width:16px">OUT</span>
+                  ${canEdit
+                    ?`<input type="time" value="${fp.out||''}" onchange="saveFP('${e.id}','${dKey3}','out',this.value)"
+                        style="flex:1;border:none;background:transparent;font-size:10px;font-weight:700;color:${fp.out?'#EF4444':'var(--t3)'};outline:none;font-family:inherit;padding:0;width:60px">`
+                    :`<span style="font-size:10px;font-weight:700;color:${fp.out?'#EF4444':'var(--t3)'}">${fp.out||'—'}</span>`}
+                </div>
+              </div>
+            </td>`;
+          }).join('');
+          const hrs=Math.floor(totalMins/60), mins2=totalMins%60;
+          const hrsLabel=totalMins?`${hrs}h${mins2?` ${mins2}m`:''}`:'-';
+          return `<tr style="background:${rowBg2};border-bottom:1px solid var(--b)">
+            <td style="padding:8px 12px;border-right:2px solid var(--b);border-left:3px solid ${eColor2};position:sticky;left:0;background:${rowBg2}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:8px;height:8px;border-radius:50%;background:${eColor2};flex-shrink:0"></div>
+                ${e.photo?`<img src="${e.photo}" style="width:28px;height:28px;border-radius:8px;object-fit:contain;object-position:center;flex-shrink:0">`:`<div style="width:28px;height:28px;border-radius:50%;background:${avatarBg(e.name)};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">${initials(e.name)}</div>`}
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--t)">${e.name}</div>
+                  <div style="font-size:10px;color:var(--t3)">${e.dept||''}</div>
+                </div>
+              </div>
+            </td>
+            ${dayCells}
+            <td style="padding:8px 6px;text-align:center;border-left:2px solid var(--b)">
+              <div style="font-size:13px;font-weight:800;color:${totalMins?'var(--a)':'var(--t3)'}">${hrsLabel}</div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+  ` : `<div class="card" style="text-align:center;padding:40px;color:var(--t3)">No active employees found.</div>`}`;
 }
 
 function showRosterEntryModal(empId, dateStr, dayName) {
