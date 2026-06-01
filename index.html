@@ -1485,25 +1485,25 @@ function renderDashboard() {
   const dutyFromRoster = onShiftNow.length>0;
 
   const _ap=[
-    {n:'Haa Alif',k:['haa alif'],x:50,y:14,r:3.5},
-    {n:'Haa Dhaal',k:['haa dhaal'],x:51,y:26,r:3.5},
-    {n:'Shaviyani',k:['shaviyani'],x:51,y:37,r:3.5},
-    {n:'Noonu',k:['noonu'],x:43,y:50,r:3.5},
-    {n:'Raa',k:['raa'],x:36,y:62,r:3.5},
-    {n:'Baa',k:['baa'],x:39,y:74,r:4},
-    {n:'Lhaviyani',k:['lhaviyani'],x:63,y:79,r:3.5},
-    {n:'Malé',k:['male','malé','kaafu','maldives'],x:63,y:108,r:8},
-    {n:'Alif Alif',k:['alif alif','ari atoll'],x:39,y:137,r:3.5},
-    {n:'Alif Dhaal',k:['alif dhaal'],x:48,y:150,r:3.5},
-    {n:'Vaavu',k:['vaavu'],x:73,y:159,r:3.5},
-    {n:'Meemu',k:['meemu'],x:57,y:171,r:3.5},
-    {n:'Faafu',k:['faafu'],x:50,y:183,r:3.5},
-    {n:'Dhaalu',k:['dhaalu'],x:63,y:195,r:3.5},
-    {n:'Thaa',k:['thaa'],x:53,y:206,r:3.5},
-    {n:'Laamu',k:['laamu'],x:58,y:218,r:3.5},
-    {n:'Gaafu Alif',k:['gaafu alif'],x:48,y:256,r:4},
-    {n:'Gaafu Dhaal',k:['gaafu dhaal'],x:62,y:267,r:4},
-    {n:'Seenu',k:['seenu','addu','gan'],x:55,y:288,r:5},
+    {n:'Haa Alif',k:['haa alif'],x:14,y:60,r:3.5},
+    {n:'Haa Dhaal',k:['haa dhaal'],x:26,y:59,r:3.5},
+    {n:'Shaviyani',k:['shaviyani'],x:37,y:59,r:3.5},
+    {n:'Noonu',k:['noonu'],x:50,y:67,r:3.5},
+    {n:'Raa',k:['raa'],x:62,y:74,r:3.5},
+    {n:'Baa',k:['baa'],x:74,y:71,r:4},
+    {n:'Lhaviyani',k:['lhaviyani'],x:79,y:47,r:3.5},
+    {n:'Malé',k:['male','malé','kaafu','maldives'],x:108,y:47,r:8},
+    {n:'Alif Alif',k:['alif alif','ari atoll'],x:137,y:71,r:3.5},
+    {n:'Alif Dhaal',k:['alif dhaal'],x:150,y:62,r:3.5},
+    {n:'Vaavu',k:['vaavu'],x:159,y:37,r:3.5},
+    {n:'Meemu',k:['meemu'],x:171,y:53,r:3.5},
+    {n:'Faafu',k:['faafu'],x:183,y:60,r:3.5},
+    {n:'Dhaalu',k:['dhaalu'],x:195,y:47,r:3.5},
+    {n:'Thaa',k:['thaa'],x:206,y:57,r:3.5},
+    {n:'Laamu',k:['laamu'],x:218,y:52,r:3.5},
+    {n:'Gaafu Alif',k:['gaafu alif'],x:256,y:62,r:4},
+    {n:'Gaafu Dhaal',k:['gaafu dhaal'],x:267,y:48,r:4},
+    {n:'Seenu',k:['seenu','addu','gan'],x:288,y:55,r:5},
   ];
   const _lm={};
   const activeAll=employees.filter(e=>e.status==='active'||e.status==='remote');
@@ -1598,55 +1598,66 @@ function renderDashboard() {
 
     <!-- Maldives Staff Map -->
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="card-title" style="margin-bottom:0">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-1px;margin-right:5px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           Staff Locations — Maldives
         </div>
-        <span style="font-size:10px;color:var(--t3)">${activeAll.length} active</span>
+        <span style="font-size:10px;color:var(--t3)">${activeAll.length} active · ${_la.length} atoll${_la.length!==1?'s':''}</span>
       </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <!-- SVG Map -->
-        <div style="flex-shrink:0;background:linear-gradient(175deg,#0d2b3e 0%,#091e2d 60%,#0d2b3e 100%);border-radius:12px;padding:8px 6px;border:1px solid rgba(127,141,116,.18)">
-          <svg viewBox="0 0 110 308" width="96" height="270" style="display:block">
-            <defs>
-              <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.5"/>
-                <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            ${_ap.map(a=>{
-              const loc=_lm[a.n];
-              const cnt=loc?loc.c:0;
-              const hasStaff=cnt>0;
-              const rad=a.n==='Malé'?(hasStaff?a.r+2:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.6:a.r*0.65);
-              const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.25)';
-              const tip=hasStaff?`<title>${a.n}: ${cnt} staff</title>`:'';
-              const ring=hasStaff&&a.n==='Malé'?`<circle cx="${a.x}" cy="${a.y}" r="${a.r+6}" fill="none" stroke="#7F8D74" stroke-width="1.2" opacity="0.35" stroke-dasharray="3 2.5"/>`:'';
-              const glow=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+6}" fill="url(#glowGrad)" opacity="0.6"/>`:'';
-              return `${glow}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.92:0.38}">${tip}</circle>${ring}`;
-            }).join('')}
-            <text x="75" y="111" font-family="sans-serif" font-size="6.5" fill="rgba(127,141,116,0.75)" font-weight="600">Malé</text>
-            <line x1="8" y1="300" x2="32" y2="300" stroke="rgba(127,141,116,0.35)" stroke-width="0.8"/>
-            <text x="10" y="307" font-family="sans-serif" font-size="5" fill="rgba(127,141,116,0.45)">~100 km</text>
-          </svg>
-        </div>
-        <!-- Location list -->
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:2px">
-          ${_la.length?_la.slice(0,6).map(g=>`
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
-                <span style="font-size:11px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95px">${g.a.n}</span>
-                <span style="font-size:11px;font-weight:800;color:var(--a);flex-shrink:0;margin-left:6px">${g.c}</span>
-              </div>
-              <div style="height:4px;background:var(--s3);border-radius:99px;overflow:hidden">
-                <div style="height:100%;width:${Math.round(g.c/_lmax*100)}%;background:var(--a);border-radius:99px;transition:width .4s"></div>
-              </div>
+      <!-- Full-width landscape map -->
+      <div style="background:linear-gradient(160deg,#0a1e2d 0%,#0d2b3e 50%,#091922 100%);border-radius:12px;padding:10px 8px 6px;margin-bottom:12px;border:1px solid rgba(127,141,116,.18);position:relative;overflow:hidden">
+        <div style="position:absolute;top:6px;left:10px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">N</div>
+        <div style="position:absolute;top:6px;right:10px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">S</div>
+        <svg viewBox="0 0 310 80" width="100%" height="80" style="display:block">
+          <defs>
+            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.55"/>
+              <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="maleGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#a0b896" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- Ocean wave texture lines -->
+          <line x1="0" y1="40" x2="310" y2="40" stroke="rgba(127,141,116,0.06)" stroke-width="12"/>
+          <!-- Atoll dots -->
+          ${_ap.map(a=>{
+            const loc=_lm[a.n];
+            const cnt=loc?loc.c:0;
+            const hasStaff=cnt>0;
+            const rad=a.n==='Malé'?(hasStaff?a.r+3:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.7:a.r*0.7);
+            const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.22)';
+            const tip=hasStaff?`<title>${a.n}: ${cnt} staff</title>`:'<title>'+a.n+'</title>';
+            const glowEl=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+7}" fill="${a.n==='Malé'?'url(#maleGlow)':'url(#glowGrad)'}" opacity="0.7"/>`:'';
+            const ring=a.n==='Malé'?`<circle cx="${a.x}" cy="${a.y}" r="${a.r+(hasStaff?7:4)}" fill="none" stroke="${hasStaff?'#7F8D74':'rgba(127,141,116,0.2)'}" stroke-width="1" opacity="${hasStaff?0.45:0.25}" stroke-dasharray="2.5 2"/>`:'';
+            const countBadge=hasStaff&&cnt>1?`<text x="${a.x}" y="${a.y+rad+9}" font-family="sans-serif" font-size="6" fill="#7F8D74" text-anchor="middle" font-weight="700">${cnt}</text>`:'';
+            return `${glowEl}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.95:0.35}">${tip}</circle>${ring}${countBadge}`;
+          }).join('')}
+          <!-- Malé label -->
+          <text x="108" y="63" font-family="sans-serif" font-size="7" fill="rgba(127,141,116,0.8)" text-anchor="middle" font-weight="700">Malé</text>
+          <!-- gap indicator between Laamu and Gaafu -->
+          <line x1="232" y1="40" x2="244" y2="40" stroke="rgba(127,141,116,0.15)" stroke-width="1" stroke-dasharray="2 3"/>
+        </svg>
+        <div style="text-align:center;font-size:8px;color:rgba(127,141,116,0.3);letter-spacing:.05em;margin-top:2px">← North Atolls · · · Indian Ocean · · · South Atolls →</div>
+      </div>
+      <!-- Location breakdown grid -->
+      ${_la.length?`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+        ${_la.slice(0,6).map(g=>`
+          <div style="background:var(--s2);border-radius:10px;padding:8px 10px;border:1px solid var(--b)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:10px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px">${g.a.n}</span>
+              <span style="font-size:12px;font-weight:900;color:var(--a)">${g.c}</span>
             </div>
-          `).join(''):`<div style="font-size:11px;color:var(--t3);padding:20px 0;text-align:center">Set employee locations to see map</div>`}
-          ${_la.length?`<div style="margin-top:4px;font-size:10px;color:var(--t3)"><span style="color:var(--a);font-weight:700">${_la.length}</span> atoll${_la.length!==1?'s':''} staffed</div>`:''}
-        </div>
-      </div>
+            <div style="height:3px;background:var(--s3);border-radius:99px;overflow:hidden">
+              <div style="height:100%;width:${Math.round(g.c/_lmax*100)}%;background:var(--a);border-radius:99px"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`:`
+      <div style="text-align:center;padding:10px 0;font-size:11px;color:var(--t3)">Add employee locations to see atoll distribution</div>`}
     </div>
 
     <!-- Live Duty Schedule -->
