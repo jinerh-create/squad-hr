@@ -470,9 +470,9 @@ select.form-input option{background:var(--s2);}
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         <span>Document Vault</span>
       </button>
-      <button class="nav-item nav-child" onclick="navigate('visa-expiry')">
+      <button class="nav-item nav-child" onclick="navigate('doc-expiry')">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h0M2 9h20"/></svg>
-        <span>Visa &amp; Passport Expiry</span>
+        <span>Document Expiry</span>
       </button>
       <button class="nav-item nav-child" onclick="navigate('resignation')">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -740,9 +740,9 @@ select.form-input option{background:var(--s2);}
       <svg id="nav-mdv-arrow" class="nav-folder-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <div id="nav-mdv-children" class="nav-folder-children" style="display:none">
-      <button class="nav-item nav-child" onclick="navigate('maldives-permits')">
+      <button class="nav-item nav-child" onclick="navigate('doc-expiry')">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2M8 21v-4M12 21v-4M16 21v-4"/></svg>
-        <span>Permits &amp; Visas</span>
+        <span>Document Expiry</span>
       </button>
       <button class="nav-item nav-child" onclick="navigate('maldives-accommodation')">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -1057,6 +1057,7 @@ const attCorrRequests = [];
 
 // Active attendance tab
 let attTab = 'overview';
+let docExpiryTab = 'urgency';
 
 const payroll = [];
 
@@ -1598,7 +1599,8 @@ function navigate(p) {
     'my-profile':'My Profile', 'my-attendance':'My Attendance',
     'my-leave':'My Leave', 'my-payslips':'My Payslips',
     'employee-profile':'Employee Profile',
-    'maldives-permits':'Work Permits & Visas',
+    'maldives-permits':'Document Expiry',
+    'doc-expiry':'Document Expiry',
     'maldives-accommodation':'Accommodation Tracker',
     'maldives-transfers':'Boat Transfers',
     'maldives-ramadan':'Ramadan Timing',
@@ -1624,7 +1626,7 @@ function navigate(p) {
     'messaging':'Internal Messages',
     'probation':'Probation Tracking',
     'comms':'Communications Hub',
-    'visa-expiry':'Visa & Passport Expiry',
+    'visa-expiry':'Document Expiry',
     'departments':'Department & Team Management',
     'resignation':'Resignation & Exit',
     'gps-attendance':'GPS Attendance',
@@ -1664,7 +1666,8 @@ function render() {
     'my-leave': renderMyLeave,
     'my-payslips': renderMyPayslips,
     'employee-profile': renderEmployeeProfile,
-    'maldives-permits': renderMaldivesPermits,
+    'maldives-permits': renderDocumentExpiry,
+    'doc-expiry': renderDocumentExpiry,
     'maldives-accommodation': renderMaldivesAccommodation,
     'maldives-transfers': renderMaldivesTransfers,
     'maldives-ramadan': renderMaldivesRamadan,
@@ -1690,7 +1693,7 @@ function render() {
     'messaging': renderMessaging,
     'probation': renderProbationTracking,
     'comms': renderCommsHub,
-    'visa-expiry': renderVisaExpiry,
+    'visa-expiry': renderDocumentExpiry,
     'departments': renderDepartments,
     'resignation': renderResignation,
     'gps-attendance': renderGPSAttendance,
@@ -7273,6 +7276,174 @@ function renderMaldivesPermits() {
       </tbody>
     </table></div>`:`<div class="empty"><div class="empty-icon">🌍</div><div>No expat employees found. Add employees with non-Maldivian nationality to track their documents.</div></div>`}
   </div>`;
+}
+
+function renderDocumentExpiry() {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const w30s = new Date(today); w30s.setDate(w30s.getDate()+30);
+  const w90s = new Date(today); w90s.setDate(w90s.getDate()+90);
+  const w30 = w30s.toISOString().split('T')[0];
+  const w90 = w90s.toISOString().split('T')[0];
+
+  const isMaldivian = e => /maldiv/i.test(e.nationality||'');
+
+  // Build flat doc list — Maldivians: passport only. Expats: all 4 types.
+  const docs = [];
+  employees.filter(e=>e.status==='active').forEach(e => {
+    const local = isMaldivian(e);
+    if(e.passportExpiry)   docs.push({emp:e, type:'Passport',    icon:'📕', expiry:e.passportExpiry,    field:'passportExpiry'});
+    if(!local){
+      if(e.visaExpiry)       docs.push({emp:e, type:'Visa',        icon:'🛂', expiry:e.visaExpiry,        field:'visaExpiry'});
+      if(e.workPermitExpiry) docs.push({emp:e, type:'Work Permit', icon:'📋', expiry:e.workPermitExpiry,  field:'workPermitExpiry'});
+      if(e.iqamaExpiry)      docs.push({emp:e, type:'ID / Iqama',  icon:'🪪', expiry:e.iqamaExpiry,       field:'iqamaExpiry'});
+    }
+  });
+
+  const expired  = docs.filter(d=>d.expiry <  todayStr);
+  const critical = docs.filter(d=>d.expiry >= todayStr && d.expiry <= w30);
+  const warning  = docs.filter(d=>d.expiry >  w30      && d.expiry <= w90);
+  const safe     = docs.filter(d=>d.expiry >  w90);
+
+  const daysLeft = expiry => Math.ceil((new Date(expiry)-today)/86400000);
+
+  const statusPill = expiry => {
+    const d = daysLeft(expiry);
+    if(d < 0)   return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,.12);color:#EF4444">Expired ${Math.abs(d)}d ago</span>`;
+    if(d === 0) return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,.15);color:#EF4444">Expires TODAY</span>`;
+    if(d <= 30) return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(239,68,68,.1);color:#EF4444">${d}d left</span>`;
+    if(d <= 90) return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(245,158,11,.1);color:#F59E0B">${d}d left</span>`;
+    return `<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,.1);color:#10B981">${d}d left</span>`;
+  };
+
+  const docRow = d => `<tr style="border-bottom:1px solid var(--b)">
+    <td style="padding:10px 0">
+      <div style="display:flex;align-items:center;gap:10px">
+        ${av(d.emp.name,30,d.emp.photo||null)}
+        <div><div style="font-size:13px;font-weight:600;color:var(--t)">${d.emp.name}</div>
+        <div style="font-size:11px;color:var(--t3)">${d.emp.dept||''} · ${d.emp.nationality||''}</div></div>
+      </div>
+    </td>
+    <td style="padding:10px 12px"><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(99,102,241,.1);color:#6366F1">${d.icon} ${d.type}</span></td>
+    <td style="padding:10px 12px;font-size:13px;font-weight:600;color:var(--t2)">${d.expiry}</td>
+    <td style="padding:10px 12px">${statusPill(d.expiry)}</td>
+    <td style="padding:10px 0;text-align:right">
+      <button onclick="editPermits(${d.emp.id})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:var(--s2);color:var(--t3);cursor:pointer;font-family:inherit">Edit</button>
+    </td>
+  </tr>`;
+
+  const urgencySection = (title, rows, color, icon) => !rows.length ? '' : `
+  <div class="card" style="margin-bottom:14px;border-color:${color}33">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:18px">${icon}</span>
+      <div style="font-size:14px;font-weight:800;color:${color}">${title}</div>
+      <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${color}18;color:${color}">${rows.length}</span>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="font-size:11px;color:var(--t3);border-bottom:1px solid var(--b)">
+        <th style="text-align:left;padding:6px 0">Employee</th>
+        <th style="text-align:left;padding:6px 12px">Document</th>
+        <th style="text-align:left;padding:6px 12px">Expiry Date</th>
+        <th style="text-align:left;padding:6px 12px">Status</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${rows.map(docRow).join('')}</tbody>
+    </table></div>
+  </div>`;
+
+  // By Employee tab — expats only
+  const expats = employees.filter(e=>e.status==='active'&&!isMaldivian(e));
+  const locals = employees.filter(e=>e.status==='active'&&isMaldivian(e)&&e.passportExpiry);
+  const empBadge = expiry => {
+    if(!expiry) return `<span style="font-size:11px;color:var(--t3)">—</span>`;
+    const d = daysLeft(expiry);
+    const c = d<0?'#EF4444':d<=30?'#EF4444':d<=90?'#F59E0B':'#10B981';
+    return `<span style="font-size:11px;font-weight:700;color:${c}">${expiry}</span><br><span style="font-size:10px;color:${c}">${d<0?'Expired':d+'d left'}</span>`;
+  };
+
+  const byEmpTable = (rows, cols) => `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+    <thead><tr style="font-size:11px;color:var(--t3);border-bottom:2px solid var(--b)">
+      <th style="text-align:left;padding:8px 0">Employee</th>
+      ${cols.map(c=>`<th style="text-align:left;padding:8px 12px">${c}</th>`).join('')}
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+
+  const tabBar = ['urgency','byEmployee'].map(k=>`
+    <button onclick="docExpiryTab='${k}';render()" style="padding:8px 18px;border-radius:20px;border:1px solid ${docExpiryTab===k?'var(--a)':'var(--b)'};background:${docExpiryTab===k?'rgba(127,141,116,.15)':'var(--s1)'};color:${docExpiryTab===k?'var(--a)':'var(--t3)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+      ${k==='urgency'?'⚠️ By Urgency':'👥 By Employee'}
+    </button>`).join('');
+
+  return `
+  <div class="section-hdr" style="flex-wrap:wrap;gap:12px">
+    <div>
+      <div class="section-title">📄 Document Expiry</div>
+      <div class="section-sub">Passports · Visas · Work Permits · ID / Iqama</div>
+    </div>
+    <button class="btn btn-primary" onclick="editPermits(null)">+ Update Documents</button>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid-4" style="margin-bottom:20px">
+    <div class="stat-card" style="cursor:pointer;border-color:rgba(239,68,68,.3)" onclick="docExpiryTab='urgency';render()">
+      <div class="stat-icon" style="background:rgba(239,68,68,.12)"><span style="font-size:22px">🔴</span></div>
+      <div><div class="stat-val" style="color:#EF4444">${expired.length}</div><div class="stat-lbl">Expired</div></div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" onclick="docExpiryTab='urgency';render()">
+      <div class="stat-icon" style="background:rgba(239,68,68,.08)"><span style="font-size:22px">⚠️</span></div>
+      <div><div class="stat-val" style="color:#EF4444">${critical.length}</div><div class="stat-lbl">Expiring in 30 days</div></div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" onclick="docExpiryTab='urgency';render()">
+      <div class="stat-icon" style="background:rgba(245,158,11,.1)"><span style="font-size:22px">🟡</span></div>
+      <div><div class="stat-val" style="color:#F59E0B">${warning.length}</div><div class="stat-lbl">Expiring in 90 days</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(16,185,129,.1)"><span style="font-size:22px">✅</span></div>
+      <div><div class="stat-val" style="color:#10B981">${safe.length}</div><div class="stat-lbl">All Clear</div></div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div style="display:flex;gap:8px;margin-bottom:20px">${tabBar}</div>
+
+  ${docExpiryTab==='urgency' ? `
+    ${!docs.length ? `<div class="card" style="text-align:center;padding:40px;color:var(--t3)">No expiry dates entered yet. Edit employee profiles to add document dates.</div>` : ''}
+    ${urgencySection('Expired', expired, '#EF4444', '🔴')}
+    ${urgencySection('Expiring within 30 days', critical, '#EF4444', '🚨')}
+    ${urgencySection('Expiring within 90 days', warning, '#F59E0B', '⚠️')}
+    ${urgencySection('Valid — All Clear', safe, '#10B981', '✅')}
+  ` : `
+    ${expats.length ? `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:14px;font-weight:800;color:var(--t);margin-bottom:12px">🌍 Expatriate Employees <span style="font-size:12px;font-weight:500;color:var(--t3)">(${expats.length})</span></div>
+      ${byEmpTable(expats.map(e=>`<tr style="border-bottom:1px solid var(--b)">
+        <td style="padding:10px 0"><div style="display:flex;align-items:center;gap:10px">
+          ${av(e.name,30,e.photo||null)}
+          <div><div style="font-size:13px;font-weight:600;color:var(--t)">${e.name}</div>
+          <div style="font-size:11px;color:var(--t3)">${e.dept||''} · ${natFlag(e.nationality)} ${e.nationality||''}</div></div>
+        </div></td>
+        <td style="padding:10px 12px">${empBadge(e.passportExpiry)}</td>
+        <td style="padding:10px 12px">${empBadge(e.visaExpiry)}${e.visaType?`<br><span style="font-size:10px;color:var(--t3)">${e.visaType}</span>`:''}</td>
+        <td style="padding:10px 12px">${empBadge(e.workPermitExpiry)}</td>
+        <td style="padding:10px 12px">${empBadge(e.iqamaExpiry)}</td>
+        <td style="padding:10px 0;text-align:right"><button onclick="editPermits(${e.id})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:var(--s2);color:var(--t3);cursor:pointer;font-family:inherit">Edit</button></td>
+      </tr>`).join(''), ['📕 Passport','🛂 Visa','📋 Work Permit','🪪 ID / Iqama'])}
+    </div>` : `<div class="card" style="margin-bottom:14px;text-align:center;padding:30px;color:var(--t3)">No expat employees found.</div>`}
+    ${locals.length ? `
+    <div class="card">
+      <div style="font-size:14px;font-weight:800;color:var(--t);margin-bottom:12px">🏝 Maldivian Employees — Passport Tracking <span style="font-size:12px;font-weight:500;color:var(--t3)">(${locals.length})</span></div>
+      ${byEmpTable(locals.map(e=>`<tr style="border-bottom:1px solid var(--b)">
+        <td style="padding:10px 0"><div style="display:flex;align-items:center;gap:10px">
+          ${av(e.name,30,e.photo||null)}
+          <div><div style="font-size:13px;font-weight:600;color:var(--t)">${e.name}</div>
+          <div style="font-size:11px;color:var(--t3)">${e.dept||''}</div></div>
+        </div></td>
+        <td style="padding:10px 12px">${empBadge(e.passportExpiry)}</td>
+        <td style="padding:10px 0;text-align:right"><button onclick="editPermits(${e.id})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--b);background:var(--s2);color:var(--t3);cursor:pointer;font-family:inherit">Edit</button></td>
+      </tr>`).join(''), ['📕 Passport'])}
+    </div>` : ''}
+  `}`;
 }
 
 function showAddPermitModal() {
@@ -13519,7 +13690,7 @@ function computeNotifications() {
   // Visa/passport expiring within 30 days
   employees.filter(e=>e.status==='active'&&e.passportExpiry&&e.passportExpiry>=todayStr&&e.passportExpiry<=in30.toISOString().split('T')[0]).forEach(e=>{
     const daysLeft=Math.round((new Date(e.passportExpiry)-today)/(1000*60*60*24));
-    notifs.push({icon:'🛂',color:'#F97316',title:`${e.name}'s passport expires in ${daysLeft} day${daysLeft!==1?'s':''}`,sub:'Update visa-expiry tracker',action:()=>navigate('visa-expiry')});
+    notifs.push({icon:'🛂',color:'#F97316',title:`${e.name}'s passport expires in ${daysLeft} day${daysLeft!==1?'s':''}`,sub:'Update visa-expiry tracker',action:()=>navigate('doc-expiry')});
   });
 
   return notifs;
