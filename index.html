@@ -186,15 +186,22 @@ select.form-input option{background:var(--s2);}
 .emp-card{background:var(--s1);border:1px solid var(--b);border-radius:22px;overflow:hidden;cursor:pointer;transition:all .22s;box-shadow:0 2px 14px rgba(0,0,0,.05);}
 .emp-card:hover{border-color:var(--a);transform:translateY(-5px);box-shadow:0 20px 48px rgba(127,141,116,.20);}
 .emp-card .av{width:64px;height:64px;font-size:22px;margin:0 auto 12px;}
-.emp-card-hdr{height:80px;background:linear-gradient(135deg,var(--a) 0%,var(--a2) 100%);padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;}
-.emp-card-hdr::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:24px;background:var(--s1);border-radius:50% 50% 0 0 / 100% 100% 0 0;}
-.emp-card-body{padding:0 20px 20px;text-align:center;}
-.emp-card-av-wrap{margin:-52px auto 10px;position:relative;z-index:2;display:flex;justify-content:center;}
-.emp-card-av-ring{padding:3px;background:var(--s1);border-radius:18px;display:inline-block;box-shadow:0 4px 16px rgba(0,0,0,.12);}
-.emp-card-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--t);margin-bottom:2px;line-height:1.2;}
-.emp-card-role{font-size:12px;font-weight:600;color:var(--a);margin-bottom:4px;}
-.emp-card-dept{font-size:11px;color:var(--t3);margin-bottom:10px;}
-.emp-card-divider{height:1px;background:var(--b);margin:10px 0 14px;}
+.emp-card-hdr{height:90px;background:linear-gradient(135deg,var(--a) 0%,var(--a2) 100%);padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden;}
+.emp-card-hdr::before{content:'';position:absolute;top:-24px;right:-24px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none;}
+.emp-card-hdr::after{content:'';position:absolute;bottom:-14px;left:-10px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
+.emp-card-body{padding:0 22px 22px;text-align:center;}
+.emp-card-av-wrap{margin:-54px auto 14px;position:relative;z-index:2;display:flex;justify-content:center;}
+.emp-card-av-ring{padding:4px;background:var(--s1);border-radius:20px;display:inline-block;box-shadow:0 6px 20px rgba(0,0,0,.14);}
+.emp-card-name{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:700;color:var(--t);margin-bottom:4px;line-height:1.2;}
+.emp-card-accent{width:28px;height:2px;background:var(--a);border-radius:99px;margin:0 auto 8px;}
+.emp-card-role{font-size:12px;font-weight:600;color:var(--a);margin-bottom:3px;}
+.emp-card-dept{font-size:11px;color:var(--t3);margin-bottom:14px;}
+.emp-card-stats{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;background:var(--s2);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.emp-card-stat{padding:9px 4px;text-align:center;}
+.emp-card-stat-val{font-size:13px;font-weight:800;color:var(--t);line-height:1;margin-bottom:3px;}
+.emp-card-stat-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);font-weight:700;}
+.emp-card-sep{background:var(--b);}
+.emp-card-divider{height:1px;background:var(--b);margin:0 0 14px;}
 
 /* KANBAN */
 .kanban{display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:14px;overflow-x:auto;}
@@ -1380,7 +1387,7 @@ const RANK_RING_COLORS = {
   'Legend Staff':  {g:'linear-gradient(145deg,#FFD700,#B8922A,#FFF0A0,#B8922A)',glow:'rgba(184,146,42,.45)'},
   'Elite Staff':   {g:'linear-gradient(145deg,#67E8F9,#0891B2,#BAF3FF,#0891B2)',glow:'rgba(8,145,178,.40)'},
   'Platinum Staff':{g:'linear-gradient(145deg,#C4B5FD,#7C3AED,#DDD6FE,#7C3AED)',glow:'rgba(124,58,237,.40)'},
-  'Gold Staff':    {g:'linear-gradient(145deg,#FDE68A,#D97706,#FEF3C7,#D97706)',glow:'rgba(217,119,6,.40)'},
+  'Gold Staff':    {g:'linear-gradient(145deg,#FDE68A,#D97706,#FEF3C7,#D97706)',glow:'rgba(127,141,116,.40)'},
   'Silver Staff':  {g:'linear-gradient(145deg,#E2E8F0,#64748B,#F1F5F9,#94A3B8)',glow:'rgba(100,116,139,.30)'},
   'Bronze Staff':  {g:'linear-gradient(145deg,#F4A460,#92400E,#CD7F32,#78350F)',glow:'rgba(146,64,14,.38)'},
 };
@@ -1713,17 +1720,33 @@ function renderEmployees() {
     ${filtered.map(e=>`
       <div class="emp-card" onclick="viewEmployee(${e.id})">
         <div class="emp-card-hdr">
-          ${e.nationality?`<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(4px);display:inline-flex;align-items:center;gap:5px;">${natFlag(e.nationality)}${e.nationality}</span>`:'<span></span>'}
-          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;display:inline-flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#fff;display:inline-block"></span>${e.status==='active'?'Active':e.status==='remote'?'Remote':e.status==='on_leave'?'On Leave':'Inactive'}</span>
+          ${e.nationality?`<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.20);color:#fff;display:inline-flex;align-items:center;gap:5px;">${natFlag(e.nationality)} ${e.nationality}</span>`:'<span></span>'}
+          <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.20);color:#fff;display:inline-flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:#fff;display:inline-block;flex-shrink:0"></span>${e.status==='active'?'Active':e.status==='remote'?'Remote':e.status==='on_leave'?'On Leave':'Inactive'}</span>
         </div>
         <div class="emp-card-body">
           <div class="emp-card-av-wrap">
-            <div class="emp-card-av-ring">${rankRingAv(e,68)}</div>
+            <div class="emp-card-av-ring">${rankRingAv(e,72)}</div>
           </div>
           <div class="emp-card-name">${e.name}</div>
+          <div class="emp-card-accent"></div>
           <div class="emp-card-role">${e.role}</div>
           <div class="emp-card-dept">${e.dept} · ${e.type}</div>
-          <div style="margin-bottom:14px">${empLevelBadge(e,true)}</div>
+          <div class="emp-card-stats">
+            <div class="emp-card-stat">
+              <div class="emp-card-stat-val">${empLevelBadge(e,false).icon||'🏅'}</div>
+              <div class="emp-card-stat-lbl">${(empLevelBadge(e,false).name||'Staff').split(' ')[0]}</div>
+            </div>
+            <div class="emp-card-sep"></div>
+            <div class="emp-card-stat">
+              <div class="emp-card-stat-val" style="font-size:10px">${e.dept.length>6?e.dept.substring(0,5)+'…':e.dept}</div>
+              <div class="emp-card-stat-lbl">Dept</div>
+            </div>
+            <div class="emp-card-sep"></div>
+            <div class="emp-card-stat">
+              <div class="emp-card-stat-val">${e.status==='active'?'🟢':e.status==='remote'?'💻':e.status==='on_leave'?'🏖️':'⚫'}</div>
+              <div class="emp-card-stat-lbl">${e.type||'Staff'}</div>
+            </div>
+          </div>
           <div class="emp-card-divider"></div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-secondary btn-sm" style="flex:1;justify-content:center" onclick="event.stopPropagation();editEmployee(${e.id})">Edit</button>
@@ -1861,7 +1884,7 @@ function renderEmployeeProfile() {
       <button class="btn btn-sm" style="background:rgba(99,102,241,.1);color:#6366F1;border:1px solid rgba(99,102,241,.25)" onclick="generatePayslip(${e.id})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Payslip
       </button>
-      <button class="btn btn-sm" style="background:rgba(245,158,11,.1);color:#D97706;border:1px solid rgba(245,158,11,.25)" onclick="showIDCard(${e.id})">
+      <button class="btn btn-sm" style="background:rgba(245,158,11,.1);color:#7F8D74;border:1px solid rgba(245,158,11,.25)" onclick="showIDCard(${e.id})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>View ID Card
       </button>
       <button class="btn btn-sm" style="background:rgba(127,141,116,.2);color:#7F8D74;border:1px solid rgba(127,141,116,.3)" onclick="showQRStaffCard(${e.id})">
@@ -7364,7 +7387,7 @@ const EMP_LEVELS = [
   {name:'Legend Staff',  icon:'👑', color:'#B8922A', minYears:10, bg:'linear-gradient(135deg,#FFF8DC,#FFFAED)', border:'rgba(212,175,55,.35)', desc:'10+ years of exceptional service'},
   {name:'Elite Staff',   icon:'💎', color:'#0891B2', minYears:6,  bg:'linear-gradient(135deg,#E0F7FA,#EBF8FC)', border:'rgba(8,145,178,.25)', desc:'6–10 years of outstanding dedication'},
   {name:'Platinum Staff',icon:'🔷', color:'#7C3AED', minYears:4,  bg:'linear-gradient(135deg,#EDE9FF,#F3F0FF)', border:'rgba(124,58,237,.2)', desc:'4–6 years of consistent excellence'},
-  {name:'Gold Staff',    icon:'⭐', color:'#D97706', minYears:2,  bg:'linear-gradient(135deg,#FFFBEB,#FEF9E7)', border:'rgba(217,119,6,.25)', desc:'2–4 years of proven performance'},
+  {name:'Gold Staff',    icon:'⭐', color:'#D97706', minYears:2,  bg:'linear-gradient(135deg,#FFFBEB,#FEF9E7)', border:'rgba(127,141,116,.25)', desc:'2–4 years of proven performance'},
   {name:'Silver Staff',  icon:'🥈', color:'#475569', minYears:1,  bg:'linear-gradient(135deg,#F1F5F9,#F8FAFC)', border:'rgba(100,116,139,.2)', desc:'1–2 years growing with the team'},
   {name:'Bronze Staff',  icon:'🥉', color:'#92400E', minYears:0,  bg:'linear-gradient(135deg,#FEF3ED,#FFF5EE)', border:'rgba(205,127,50,.2)', desc:'Under 1 year — just getting started'},
 ];
@@ -14350,11 +14373,11 @@ function renderBudgetSheet() {
     d.year=parseInt(y); localStorage.setItem('squad_expense_sheet',JSON.stringify(d)); render();
   };
 
-  const TEAL='#6b7762';
-  const HDR_BG='#F0FDF4';
-  const HDR_BG2='#ECFDF5';
-  const HDR_TEXT='#1E293B';
-  const HDR_BORDER='#A7F3D0';
+  const TEAL='#7F8D74';
+  const HDR_BG='#ECEEE9';
+  const HDR_BG2='#E5E8E2';
+  const HDR_TEXT='#222222';
+  const HDR_BORDER='#C8CEC3';
   const years=[]; for(let y=2020;y<=2030;y++)years.push(y);
   const thBase=`padding:10px 6px;font-size:11px;font-weight:700;color:${HDR_TEXT};text-align:center;border-left:1px solid ${HDR_BORDER};white-space:nowrap;min-width:110px;vertical-align:middle;background:${HDR_BG}`;
 
@@ -14368,46 +14391,46 @@ function renderBudgetSheet() {
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <div style="display:flex;align-items:center;gap:8px">
               ${canEdit
-                ?`<span contenteditable="true" onblur="esSaveRowName(${r},this)" style="font-size:11px;font-weight:800;color:#D97706;letter-spacing:.05em;text-transform:uppercase;outline:none;cursor:text" title="Click to rename">${name}</span>`
-                :`<span style="font-size:11px;font-weight:800;color:#D97706;letter-spacing:.05em;text-transform:uppercase">${name}</span>`}
+                ?`<span contenteditable="true" onblur="esSaveRowName(${r},this)" style="font-size:11px;font-weight:800;color:#7F8D74;letter-spacing:.05em;text-transform:uppercase;outline:none;cursor:text" title="Click to rename">${name}</span>`
+                :`<span style="font-size:11px;font-weight:800;color:#7F8D74;letter-spacing:.05em;text-transform:uppercase">${name}</span>`}
               <span style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:none">${childCount} item${childCount!==1?'s':''}</span>
             </div>
             ${canEdit?`<div style="display:flex;gap:4px">
               <button onclick="esInsertRowAbove(${r})" style="font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid #C7D8E8;background:#F0F5FA;color:#475569;cursor:pointer;font-family:inherit;white-space:nowrap" title="Insert row above this group">↑ Row</button>
-              <button onclick="esAddChildRow(${r})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid rgba(217,119,6,.4);background:rgba(217,119,6,.1);color:#D97706;cursor:pointer;font-family:inherit;white-space:nowrap">+ Add</button>
+              <button onclick="esAddChildRow(${r})" style="font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid rgba(127,141,116,.4);background:rgba(127,141,116,.1);color:#7F8D74;cursor:pointer;font-family:inherit;white-space:nowrap">+ Add</button>
               <button onclick="esDeleteRow(${r})" style="font-size:9px;padding:2px 5px;border-radius:4px;border:1px solid #FECACA;background:#FEF2F2;color:#EF4444;cursor:pointer;font-family:inherit">✕</button>
             </div>`:''}
           </div>
         </td>
-        ${cols.map((_,c)=>`<td id="es-grp-${r}-${c}" style="padding:7px 10px;font-size:11px;font-weight:700;color:#D97706;text-align:right;background:#FFFBEB;border-right:1px solid #FDE68A;border-top:2px solid #FDE68A;border-bottom:1px solid #FDE68A">—</td><td style="width:28px;background:#FFFBEB;border-top:2px solid #FDE68A;border-bottom:1px solid #FDE68A;border-right:1px solid #FDE68A"></td>`).join('')}
-        <td id="es-rt-${r}" style="padding:7px 14px;font-size:11px;font-weight:700;color:#D97706;text-align:right;border-left:2px solid #FCD34D;background:#FEF9E7;white-space:nowrap;border-top:2px solid #FDE68A;border-bottom:1px solid #FDE68A">—</td>
+        ${cols.map((_,c)=>`<td id="es-grp-${r}-${c}" style="padding:7px 10px;font-size:11px;font-weight:700;color:#7F8D74;text-align:right;background:#ECEEE9;border-right:1px solid #C8CEC3;border-top:2px solid #C8CEC3;border-bottom:1px solid #C8CEC3">—</td><td style="width:28px;background:#ECEEE9;border-top:2px solid #C8CEC3;border-bottom:1px solid #C8CEC3;border-right:1px solid #C8CEC3"></td>`).join('')}
+        <td id="es-rt-${r}" style="padding:7px 14px;font-size:11px;font-weight:700;color:#7F8D74;text-align:right;border-left:2px solid #7F8D74;background:#ECEEE9;white-space:nowrap;border-top:2px solid #FDE68A;border-bottom:1px solid #FDE68A">—</td>
         ${canEdit?'<td style="background:#FFFBEB;border-top:2px solid #FDE68A;border-bottom:1px solid #FDE68A"></td>':''}
       </tr>`;
     }
     if(type==='child'){
-      return `<tr onmouseover="this.style.background='#FFFDF5'" onmouseout="this.style.background=''">
-        <td style="padding:5px 18px 5px 36px;font-size:11px;color:#475569;white-space:nowrap;position:sticky;left:0;background:#fff;border-right:2px solid #E2EAF0;z-index:2;border-left:3px solid #FDE68A">
+      return `<tr onmouseover="this.style.background='#F2F4EF'" onmouseout="this.style.background=''">
+        <td style="padding:5px 18px 5px 36px;font-size:11px;color:#475569;white-space:nowrap;position:sticky;left:0;background:#fff;border-right:2px solid #E2EAF0;z-index:2;border-left:3px solid #7F8D74">
           <div style="display:flex;align-items:center;gap:6px">
-            <span style="color:#FCD34D;font-size:11px">↳</span>
+            <span style="color:#7F8D74;font-size:11px">↳</span>
             ${canEdit
               ?`<span contenteditable="true" onblur="esSaveRowName(${r},this)" style="outline:none;cursor:text;min-width:100px" title="Click to rename">${name}</span>
                 <button onclick="esDeleteRow(${r})" style="font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid #FECACA;background:#FEF2F2;color:#EF4444;cursor:pointer;font-family:inherit;flex-shrink:0">✕</button>`
               :name}
           </div>
         </td>
-        ${cols.map((_,c)=>`<td style="padding:0;border-right:1px solid #EEF2F5;border-bottom:1px solid #F0FBF8">
+        ${cols.map((_,c)=>`<td style="padding:0;border-right:1px solid #EEF2F5;border-bottom:1px solid #DFE2D9">
           <input class="es-inp" data-k="${r}|${c}" value="${yearData[`${r}|${c}`]||''}"
             style="width:100%;min-width:110px;border:none;background:transparent;padding:6px 10px;font-size:11px;font-family:inherit;color:#475569;outline:none;text-align:right;box-sizing:border-box"
             placeholder="0" oninput="esRecalc()" onblur="esBlur(this)">
-        </td><td style="width:28px;padding:0;text-align:center;border-right:1px solid #EEF2F5;border-bottom:1px solid #F0FBF8;background:#FAFFFE">
+        </td><td style="width:28px;padding:0;text-align:center;border-right:1px solid #EEF2F5;border-bottom:1px solid #DFE2D9;background:#F5F7F4">
           <input type="checkbox" ${ticksYear[r+'_'+c]?'checked':''} onchange="esTickCell(${r},${c},this.checked)" style="width:14px;height:14px;cursor:pointer;accent-color:#6b7762;display:block;margin:auto">
         </td>`).join('')}
-        <td id="es-rt-${r}" style="padding:6px 14px;font-size:11px;font-weight:600;color:#64748B;text-align:right;border-left:2px solid #D8EEE6;background:#FAFFFE;white-space:nowrap">—</td>
+        <td id="es-rt-${r}" style="padding:6px 14px;font-size:11px;font-weight:600;color:#64748B;text-align:right;border-left:2px solid #C8CEC3;background:#F5F7F4;white-space:nowrap">—</td>
         ${canEdit?'<td></td>':''}
       </tr>`;
     }
     // Regular row
-    return `<tr onmouseover="this.style.background='#F5FBF8'" onmouseout="this.style.background=''">
+    return `<tr onmouseover="this.style.background='#F2F4EF'" onmouseout="this.style.background=''">
       <td style="padding:6px 18px;font-size:12px;color:#1E293B;white-space:nowrap;position:sticky;left:0;background:#fff;border-right:2px solid #E2EAF0;z-index:2">
         ${canEdit
           ?`<div style="display:flex;align-items:center;gap:8px">
@@ -14420,10 +14443,10 @@ function renderBudgetSheet() {
         <input class="es-inp" data-k="${r}|${c}" value="${yearData[`${r}|${c}`]||''}"
           style="width:100%;min-width:110px;border:none;background:transparent;padding:7px 10px;font-size:12px;font-family:inherit;color:#1E293B;outline:none;text-align:right;box-sizing:border-box"
           placeholder="0" oninput="esRecalc()" onblur="esBlur(this)">
-      </td><td style="width:28px;padding:0;text-align:center;border-right:1px solid #EEF2F5;border-bottom:1px solid #F5F7FA;background:#FAFFFE">
+      </td><td style="width:28px;padding:0;text-align:center;border-right:1px solid #EEF2F5;border-bottom:1px solid #F5F7FA;background:#F5F7F4">
         <input type="checkbox" ${ticksYear[r+'_'+c]?'checked':''} onchange="esTickCell(${r},${c},this.checked)" style="width:14px;height:14px;cursor:pointer;accent-color:#6b7762;display:block;margin:auto">
       </td>`).join('')}
-      <td id="es-rt-${r}" style="padding:7px 14px;font-size:12px;font-weight:700;color:#7F8D74;text-align:right;border-left:2px solid #D8EEE6;background:#F5FDF9;white-space:nowrap">—</td>
+      <td id="es-rt-${r}" style="padding:7px 14px;font-size:12px;font-weight:700;color:#7F8D74;text-align:right;border-left:2px solid #C8CEC3;background:#ECEEE9;white-space:nowrap">—</td>
       ${canEdit?'<td></td>':''}
     </tr>`;
   }
@@ -14451,7 +14474,7 @@ function renderBudgetSheet() {
     <button class="btn btn-secondary" onclick="esAddRow()" style="font-size:11px;padding:5px 12px">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Row
     </button>
-    <button class="btn btn-secondary" onclick="esAddGroup()" style="font-size:11px;padding:5px 12px;border-color:rgba(217,119,6,.4);color:#D97706">
+    <button class="btn btn-secondary" onclick="esAddGroup()" style="font-size:11px;padding:5px 12px;border-color:rgba(127,141,116,.4);color:#7F8D74">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
     </button>
     <button class="btn btn-secondary" onclick="esAddCol()" style="font-size:11px;padding:5px 12px">
@@ -14474,13 +14497,13 @@ function renderBudgetSheet() {
                 </div>`
               :`<span style="color:#1E293B;font-size:11px;font-weight:700;letter-spacing:.04em">${col}</span>`}
           </th><th style="padding:4px 2px;width:28px;text-align:center;background:${HDR_BG};border-left:1px solid ${HDR_BORDER};font-size:9px;color:#6b7762;font-weight:700">✓</th>`).join('')}
-          <th style="padding:13px 14px;font-size:11px;font-weight:800;color:#6b7762;border-left:2px solid #6EE7B7;min-width:120px;white-space:nowrap;background:#D1FAE5;letter-spacing:.05em">TOTAL</th>
+          <th style="padding:13px 14px;font-size:11px;font-weight:800;color:#6b7762;border-left:2px solid #7F8D74;min-width:120px;white-space:nowrap;background:#E5E8E2;letter-spacing:.05em">TOTAL</th>
           ${canEdit?`<th style="padding:8px 10px;background:${HDR_BG};border-left:1px solid ${HDR_BORDER}"><button onclick="esAddCol()" style="padding:5px 12px;border-radius:20px;border:1px solid #C7D8E8;background:#fff;color:#6b7762;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">+ Col</button></th>`:''}
         </tr>
         <tr style="background:${HDR_BG2};border-bottom:1px solid ${HDR_BORDER}">
           <td style="padding:5px 18px;font-size:9px;font-weight:700;color:#64748B;letter-spacing:.12em;position:sticky;left:0;background:${HDR_BG2};z-index:3;border-right:2px solid ${HDR_BORDER}">CATEGORY</td>
           ${cols.map(()=>`<td style="padding:5px 6px;font-size:9px;font-weight:600;color:#94A3B8;text-align:center;border-left:1px solid ${HDR_BORDER}">AMOUNT (MVR)</td><td style="background:${HDR_BG2};border-left:1px solid ${HDR_BORDER};width:28px"></td>`).join('')}
-          <td style="border-left:2px solid #6EE7B7;background:#D1FAE5"></td>
+          <td style="border-left:2px solid #7F8D74;background:#E5E8E2"></td>
           ${canEdit?'<td></td>':''}
         </tr>
       </thead>
@@ -14502,7 +14525,7 @@ function renderBudgetSheet() {
     <button class="btn btn-secondary" onclick="esAddRow()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Row
     </button>
-    <button class="btn btn-secondary" onclick="esAddGroup()" style="border-color:rgba(217,119,6,.4);color:#D97706">
+    <button class="btn btn-secondary" onclick="esAddGroup()" style="border-color:rgba(127,141,116,.4);color:#7F8D74">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
     </button>
     <button class="btn btn-secondary" onclick="esAddCol()">
