@@ -1176,7 +1176,7 @@ let _pendingLat = null;
 let _pendingLng = null;
 
 function initMaldivesMap() {
-  if (!window.L) return; // Leaflet not loaded yet
+  if (!window.L) { setTimeout(initMaldivesMap, 300); return; }
   const el = document.getElementById('leaflet-map');
   if (!el) return;
   // Destroy old instance
@@ -1878,29 +1878,28 @@ function renderDashboard() {
 
   <!-- MALDIVES INTERACTIVE MAP -->
   <div class="card" style="margin-bottom:20px;padding:0;overflow:hidden;border-radius:14px">
-    <!-- Header bar -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--b);background:var(--s1)">
-      <div style="display:flex;align-items:center;gap:8px">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--b);background:var(--s1)">
+      <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:14px;font-weight:800;color:var(--t)">🛰 Maldives Satellite Map</span>
-        <span id="map-marker-count" style="font-size:10px;color:var(--t3)">${mapMarkers.length} marker${mapMarkers.length!==1?'s':''}</span>
+        <span id="map-marker-count" style="font-size:10px;color:var(--t3);background:var(--s2);padding:2px 8px;border-radius:20px">${mapMarkers.length} marker${mapMarkers.length!==1?'s':''}</span>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span style="font-size:9px;color:var(--t3)">Scroll to zoom · Click marker to view</span>
-        ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="toggleMapAddMode()" style="font-size:11px;padding:4px 12px">+ Add Marker</button>`:''}
-      </div>
-    </div>
-    <!-- Map + Sidebar -->
-    <div style="display:flex;height:480px">
-      <!-- Leaflet map fills left -->
-      <div id="leaflet-map" style="flex:1;min-width:0;z-index:0"></div>
-      <!-- Marker list sidebar -->
-      <div style="width:240px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--b);display:flex;flex-direction:column;overflow:hidden">
-        <div style="padding:10px 12px;border-bottom:1px solid var(--b);font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.07em">Pinned Locations</div>
-        <div id="map-marker-list" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px">
-          ${_renderMarkerList()}
-        </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:10px;color:var(--t3)">Scroll to zoom · Drag to pan</span>
+        ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="toggleMapAddMode()" style="font-size:11px;padding:5px 14px">📍 Add Marker</button>`:''}
       </div>
     </div>
+    <!-- Full-width satellite map -->
+    <div id="leaflet-map" style="width:100%;height:460px;z-index:0"></div>
+    <!-- Marker chips below -->
+    ${mapMarkers.length?`
+    <div style="padding:10px 14px;border-top:1px solid var(--b);background:var(--s1);display:flex;flex-wrap:wrap;gap:7px">
+      ${mapMarkers.map(m=>`<div onclick="viewMapMarker('${m.id}')"
+        style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--s2);border-radius:20px;border:1px solid ${_markerColor(m.type)}44;cursor:pointer;font-size:11px;color:var(--t);transition:background .15s" onmouseenter="this.style.background='var(--s3)'" onmouseleave="this.style.background='var(--s2)'">
+        ${_markerIcon(m.type)} ${m.title}
+      </div>`).join('')}
+    </div>
+    `:`<div style="padding:10px 16px;background:var(--s1);border-top:1px solid var(--b);font-size:11px;color:var(--t3);text-align:center">${currentUser&&(currentUser.role==='admin'||currentUser.role==='hr')?'Click <b>📍 Add Marker</b> then click anywhere on the satellite map to pin a location':'No markers placed yet'}</div>`}
   </div>
 
   <!-- LIVE DUTY SCHEDULE -->
