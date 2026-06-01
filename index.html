@@ -1801,35 +1801,101 @@ function renderDashboard() {
       </div>
     </div>
     <div id="maldives-map-container" onclick="handleMapClick(event)"
-         style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--b);cursor:default;background:#000;min-height:220px">
-      <img src="maldives-map.png" id="map-img" style="width:100%;display:block;border-radius:12px"
-           onerror="this.style.display='none';document.getElementById('map-svg-fallback').style.display='block'">
-      <div id="map-svg-fallback" style="display:none;background:linear-gradient(160deg,#0a1e2d 0%,#0d2b3e 50%,#091922 100%);padding:16px 10px 10px;border-radius:12px">
-        <div style="position:relative">
-          <div style="position:absolute;top:0;left:6px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">N</div>
-          <div style="position:absolute;top:0;right:6px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">S</div>
-          <svg viewBox="0 0 310 80" width="100%" height="80" style="display:block">
-            <defs>
-              <radialGradient id="glowGrad2" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.55"/>
-                <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <line x1="0" y1="40" x2="310" y2="40" stroke="rgba(127,141,116,0.06)" stroke-width="12"/>
-            ${_ap.map(a=>{
-              const loc=_lm[a.n];const cnt=loc?loc.c:0;const hasStaff=cnt>0;
-              const rad=a.n==='Malé'?(hasStaff?a.r+3:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.7:a.r*0.7);
-              const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.22)';
-              const glowEl=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+7}" fill="url(#glowGrad2)" opacity="0.7"/>`:'';
-              const countBadge=hasStaff&&cnt>1?`<text x="${a.x}" y="${a.y+rad+9}" font-family="sans-serif" font-size="6" fill="#7F8D74" text-anchor="middle" font-weight="700">${cnt}</text>`:'';
-              return `${glowEl}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.95:0.35}"><title>${a.n}${hasStaff?': '+cnt+' staff':''}</title></circle>${countBadge}`;
-            }).join('')}
-            <text x="108" y="63" font-family="sans-serif" font-size="7" fill="rgba(127,141,116,0.8)" text-anchor="middle" font-weight="700">Malé</text>
-            <line x1="232" y1="40" x2="244" y2="40" stroke="rgba(127,141,116,0.15)" stroke-width="1" stroke-dasharray="2 3"/>
-          </svg>
-          <div style="text-align:center;font-size:8px;color:rgba(127,141,116,0.3);letter-spacing:.05em;margin-top:4px">← North · · · Indian Ocean · · · South →</div>
-        </div>
-      </div>
+         style="position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(0,230,255,0.18);cursor:default;background:#000;height:520px">
+      <!-- Portrait Maldives SVG map — cyan on black, portrait orientation -->
+      <svg id="map-svg-fallback" viewBox="0 0 400 1100" preserveAspectRatio="xMidYMid meet"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;display:block;background:#000">
+        <defs>
+          <filter id="cyan-glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- N / S labels -->
+        <text x="24" y="38" font-family="sans-serif" font-size="18" font-weight="800" fill="rgba(0,230,255,0.35)" letter-spacing="2">N</text>
+        <text x="24" y="1082" font-family="sans-serif" font-size="18" font-weight="800" fill="rgba(0,230,255,0.35)" letter-spacing="2">S</text>
+        <!-- vertical guide line (chain axis) -->
+        <line x1="200" y1="0" x2="200" y2="1100" stroke="rgba(0,230,255,0.04)" stroke-width="1"/>
+
+        <!-- Haa Alif — thin chain of small northern islands -->
+        <ellipse cx="200" cy="52" rx="5" ry="22" fill="#000" stroke="#00E6FF" stroke-width="1.8" filter="url(#cyan-glow)"/>
+        <ellipse cx="196" cy="88" rx="7" ry="14" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+        <circle cx="207" cy="75" r="4" fill="#000" stroke="#00E6FF" stroke-width="1.6"/>
+        <circle cx="196" cy="70" r="2.5" fill="#00E6FF" opacity="0.7"/>
+        <circle cx="203" cy="62" r="2" fill="#00E6FF" opacity="0.6"/>
+
+        <!-- Haa Dhaal -->
+        <ellipse cx="197" cy="142" rx="14" ry="22" fill="#000" stroke="#00E6FF" stroke-width="1.8" filter="url(#cyan-glow)"/>
+        <ellipse cx="211" cy="132" rx="8" ry="14" fill="#000" stroke="#00E6FF" stroke-width="1.6"/>
+
+        <!-- Shaviyani -->
+        <ellipse cx="194" cy="208" rx="16" ry="24" fill="#000" stroke="#00E6FF" stroke-width="1.8" filter="url(#cyan-glow)"/>
+        <circle cx="208" cy="198" r="5" fill="#000" stroke="#00E6FF" stroke-width="1.5"/>
+
+        <!-- Noonu -->
+        <ellipse cx="198" cy="272" rx="14" ry="20" fill="#000" stroke="#00E6FF" stroke-width="1.8" filter="url(#cyan-glow)"/>
+        <ellipse cx="216" cy="264" rx="11" ry="17" fill="#000" stroke="#00E6FF" stroke-width="1.6"/>
+
+        <!-- Raa — large -->
+        <ellipse cx="186" cy="344" rx="26" ry="42" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+        <circle cx="210" cy="328" r="7" fill="#000" stroke="#00E6FF" stroke-width="1.5"/>
+
+        <!-- Baa — large, offset right -->
+        <ellipse cx="212" cy="426" rx="22" ry="34" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+
+        <!-- Lhaviyani -->
+        <ellipse cx="196" cy="486" rx="18" ry="24" fill="#000" stroke="#00E6FF" stroke-width="1.8" filter="url(#cyan-glow)"/>
+
+        <!-- North Malé Atoll — Kaafu, densely populated -->
+        <ellipse cx="184" cy="546" rx="24" ry="36" fill="#000" stroke="#00E6FF" stroke-width="2.2" filter="url(#cyan-glow)"/>
+        <ellipse cx="216" cy="534" rx="18" ry="26" fill="#000" stroke="#00E6FF" stroke-width="2"/>
+        <!-- Malé label -->
+        <text x="200" y="555" font-family="sans-serif" font-size="10" font-weight="800" fill="#00E6FF" text-anchor="middle" opacity="0.85">Malé</text>
+
+        <!-- South Malé Atoll -->
+        <ellipse cx="210" cy="598" rx="20" ry="28" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+
+        <!-- Alif Alif — large, left -->
+        <ellipse cx="180" cy="666" rx="28" ry="44" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+
+        <!-- Alif Dhaal — right of Alif Alif -->
+        <ellipse cx="218" cy="672" rx="20" ry="30" fill="#000" stroke="#00E6FF" stroke-width="1.9" filter="url(#cyan-glow)"/>
+
+        <!-- Vaavu -->
+        <ellipse cx="220" cy="730" rx="14" ry="19" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- Meemu -->
+        <ellipse cx="190" cy="764" rx="16" ry="21" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- Faafu -->
+        <ellipse cx="206" cy="800" rx="14" ry="18" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- Dhaalu -->
+        <ellipse cx="198" cy="834" rx="15" ry="20" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- Thaa -->
+        <ellipse cx="190" cy="870" rx="16" ry="22" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- Laamu -->
+        <ellipse cx="200" cy="910" rx="17" ry="24" fill="#000" stroke="#00E6FF" stroke-width="1.8"/>
+
+        <!-- — gap: Huvadhu channel — -->
+        <text x="200" y="958" font-family="sans-serif" font-size="8" fill="rgba(0,230,255,0.2)" text-anchor="middle" letter-spacing="3">· · ·</text>
+
+        <!-- Gaafu Alif -->
+        <ellipse cx="197" cy="992" rx="22" ry="30" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+
+        <!-- Gaafu Dhaal -->
+        <ellipse cx="204" cy="1040" rx="20" ry="27" fill="#000" stroke="#00E6FF" stroke-width="2" filter="url(#cyan-glow)"/>
+
+        <!-- Seenu / Addu — southernmost, wider than tall -->
+        <ellipse cx="200" cy="1075" rx="30" ry="18" fill="#000" stroke="#00E6FF" stroke-width="2.2" filter="url(#cyan-glow)"/>
+        <circle cx="202" cy="1092" r="4" fill="#000" stroke="#00E6FF" stroke-width="1.5"/>
+      </svg>
+      <!-- PNG override — shows on top when maldives-map.png exists -->
+      <img src="maldives-map.png" id="map-img"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center;display:none"
+           onload="this.style.display='block';document.getElementById('map-svg-fallback').style.display='none'">
       <!-- Markers overlay -->
       ${mapMarkers.map(m=>{
         const _mc={pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'};
