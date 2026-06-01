@@ -1111,8 +1111,8 @@ function saveData() {
 
 // ── Cloud Sync (Cloudflare D1) ──────────────────────────────────────────────
 const _SYNC = {
-  token: 'sqhr_sync_2026',   // must match SYNC_TOKEN env var in CF Pages
-  url: '/api/sync',
+  token: 'sqhr_sync_2026',   // must match SYNC_TOKEN env var in CF Worker
+  url: 'https://squad-hr.jinerh.workers.dev',
   timer: null,
   status: 'idle'             // idle | saving | saved | error
 };
