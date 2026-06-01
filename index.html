@@ -6979,7 +6979,7 @@ function renderMyProfile() {
   const myLeaves  = leaves.filter(l => l.emp === emp.name);
   return `
   <div class="profile-hdr">
-    ${av(emp.name, 80)}
+    ${av(emp.name, 80, emp.photo||null)}
     <div>
       <div class="profile-name">${emp.name}</div>
       <div class="profile-role">${emp.role}</div>
@@ -7034,7 +7034,73 @@ function renderMyProfile() {
     <div style="font-size:16px;font-weight:800;color:var(--t);margin-bottom:6px">Your QR Staff Card</div>
     <div style="font-size:13px;color:var(--t3);margin-bottom:16px">Digital ID card with scannable QR code. Share your contact or show at the door — no plastic needed.</div>
     <button class="btn btn-primary" onclick="showQRStaffCard(${emp.id})">📱 View My Staff Card</button>
-  </div>`;
+  </div>
+
+  <!-- My Duty Roster -->
+  ${(()=>{
+    const dates = getRosterWeekDates();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const DAY_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const DAY_NAMES  = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    const weekLabel  = dates[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const eColor     = empColors[emp.id] || '#7F8D74';
+
+    const dayCards = dates.map((d,di)=>{
+      const dKey    = dateKey(d);
+      const cellKey = emp.id+'_'+dKey;
+      const boxes   = rosterV2[cellKey] || [];
+      const fp      = fingerprintData[emp.id+'_'+dKey] || {};
+      const isToday = d.getTime() === today.getTime();
+      const isWeekend = di >= 5;
+      const onLeave = leaves.find(l=>l.emp===emp.name&&l.status==='approved'&&dKey>=l.from&&dKey<=l.to);
+
+      const shifts = boxes.filter(v=>v&&v!=='off'&&v!=='break');
+      const isOff  = boxes.some(v=>v==='off') && !shifts.length;
+      const hasShift = shifts.length > 0;
+
+      const shiftLabels = shifts.map(v=>{
+        const s = DUTY_SLOTS.find(x=>x.key===v);
+        const label = customSlotLabels[v] || (s ? s.time : v);
+        return `<div style="font-size:10px;font-weight:700;color:${eColor};background:${eColor}18;border:1px solid ${eColor}44;border-radius:5px;padding:2px 6px;text-align:center">${label}</div>`;
+      }).join('');
+
+      const fpRow = (fp.in||fp.out) ? `
+        <div style="display:flex;gap:4px;margin-top:4px;justify-content:center">
+          ${fp.in?`<span style="font-size:9px;font-weight:700;color:#7F8D74;background:rgba(127,141,116,.12);border-radius:4px;padding:1px 5px">IN ${fp.in}</span>`:''}
+          ${fp.out?`<span style="font-size:9px;font-weight:700;color:#EF4444;background:rgba(239,68,68,.08);border-radius:4px;padding:1px 5px">OUT ${fp.out}</span>`:''}
+        </div>` : '';
+
+      return `<div style="flex:1;min-width:90px;border-radius:10px;border:${isToday?'2px solid '+eColor:'1px solid var(--b)'};background:${isToday?eColor+'0D':'var(--s1)'};padding:8px 6px;text-align:center">
+        <div style="font-size:10px;font-weight:800;color:${isWeekend?'#F59E0B':isToday?eColor:'var(--t3)'};letter-spacing:.06em">${DAY_LABELS[di]}</div>
+        <div style="font-size:18px;font-weight:800;color:${isToday?eColor:'var(--t)'};margin:2px 0">${d.getDate()}</div>
+        <div style="font-size:9px;color:var(--t3);margin-bottom:6px">${DAY_NAMES[di].slice(0,3)}</div>
+        ${onLeave
+          ? `<div style="font-size:10px;font-weight:700;color:#10B981;background:rgba(16,185,129,.12);border-radius:5px;padding:3px 5px">🌿 Leave</div>`
+          : isOff
+          ? `<div style="font-size:10px;font-weight:700;color:#64748B;background:rgba(100,116,139,.1);border-radius:5px;padding:3px 5px">Off Day</div>`
+          : hasShift
+          ? `<div style="display:flex;flex-direction:column;gap:2px">${shiftLabels}</div>`
+          : `<div style="font-size:10px;color:var(--t3)">—</div>`}
+        ${fpRow}
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="card" style="margin-top:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="card-title" style="margin:0">📅 My Duty Roster</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">${weekLabel}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onclick="rosterWeek(-1);render()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--s1);color:var(--t);font-size:12px;cursor:pointer;font-family:inherit">← Prev</button>
+          <button onclick="rosterWeek(0);render()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--s2);color:var(--t2);font-size:12px;cursor:pointer;font-family:inherit">Today</button>
+          <button onclick="rosterWeek(1);render()" style="padding:5px 10px;border-radius:7px;border:1px solid var(--b);background:var(--s1);color:var(--t);font-size:12px;cursor:pointer;font-family:inherit">Next →</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px">${dayCards}</div>
+    </div>`;
+  })()}`;
 }
 
 function renderMyAttendance() {
