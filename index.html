@@ -1466,6 +1466,56 @@ function renderDashboard() {
   const avgKpi = reviews.length ? Math.round(reviews.reduce((s,r)=>s+(+r.kpi||0),0)/reviews.length) : null;
   const completedRevs = reviews.filter(r=>r.status==='completed').length;
 
+  // === DUTY + MAP DATA ===
+  const nowHr = today.getHours() + today.getMinutes()/60;
+  const todayRoster = rosterEntries.filter(r=>r.date===todayStr);
+  const onShiftNow = todayRoster
+    .filter(r=>r.shiftType!=='off'&&(
+      (r.shiftType==='morning'&&nowHr>=6&&nowHr<14)||
+      (r.shiftType==='day'&&nowHr>=9&&nowHr<18)||
+      (r.shiftType==='afternoon'&&nowHr>=14&&nowHr<22)||
+      (r.shiftType==='night'&&(nowHr>=22||nowHr<6))||
+      r.shiftType==='emergency'||r.shiftType==='custom'
+    ))
+    .map(r=>({r,emp:employees.find(e=>e.id===r.empId),preset:SHIFT_PRESETS.find(s=>s.key===r.shiftType)||SHIFT_PRESETS[1]}))
+    .filter(x=>x.emp);
+  const dutyDisplay = onShiftNow.length>0
+    ? onShiftNow.slice(0,8)
+    : employees.filter(e=>e.status==='active'||e.status==='remote').slice(0,8).map(emp=>({r:{shiftType:'day'},emp,preset:SHIFT_PRESETS[1]}));
+  const dutyFromRoster = onShiftNow.length>0;
+
+  const _ap=[
+    {n:'Haa Alif',k:['haa alif'],x:50,y:14,r:3.5},
+    {n:'Haa Dhaal',k:['haa dhaal'],x:51,y:26,r:3.5},
+    {n:'Shaviyani',k:['shaviyani'],x:51,y:37,r:3.5},
+    {n:'Noonu',k:['noonu'],x:43,y:50,r:3.5},
+    {n:'Raa',k:['raa'],x:36,y:62,r:3.5},
+    {n:'Baa',k:['baa'],x:39,y:74,r:4},
+    {n:'Lhaviyani',k:['lhaviyani'],x:63,y:79,r:3.5},
+    {n:'Malé',k:['male','malé','kaafu','maldives'],x:63,y:108,r:8},
+    {n:'Alif Alif',k:['alif alif','ari atoll'],x:39,y:137,r:3.5},
+    {n:'Alif Dhaal',k:['alif dhaal'],x:48,y:150,r:3.5},
+    {n:'Vaavu',k:['vaavu'],x:73,y:159,r:3.5},
+    {n:'Meemu',k:['meemu'],x:57,y:171,r:3.5},
+    {n:'Faafu',k:['faafu'],x:50,y:183,r:3.5},
+    {n:'Dhaalu',k:['dhaalu'],x:63,y:195,r:3.5},
+    {n:'Thaa',k:['thaa'],x:53,y:206,r:3.5},
+    {n:'Laamu',k:['laamu'],x:58,y:218,r:3.5},
+    {n:'Gaafu Alif',k:['gaafu alif'],x:48,y:256,r:4},
+    {n:'Gaafu Dhaal',k:['gaafu dhaal'],x:62,y:267,r:4},
+    {n:'Seenu',k:['seenu','addu','gan'],x:55,y:288,r:5},
+  ];
+  const _lm={};
+  const activeAll=employees.filter(e=>e.status==='active'||e.status==='remote');
+  activeAll.forEach(e=>{
+    const lc=(e.location||'Malé, Maldives').toLowerCase();
+    let a=_ap.find(a=>a.k.some(k=>lc.includes(k)))||_ap.find(a=>a.n==='Malé');
+    if(!_lm[a.n]) _lm[a.n]={a,c:0,list:[]};
+    _lm[a.n].c++; _lm[a.n].list.push(e);
+  });
+  const _la=Object.values(_lm).sort((a,b)=>b.c-a.c);
+  const _lmax=_la.length?_la[0].c:1;
+
   return `
   <div class="section-hdr">
     <div>
@@ -1540,6 +1590,93 @@ function renderDashboard() {
     <div class="card">
       <div class="card-title">By Department</div>
       <div class="chart-wrap"><canvas id="deptChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- MALDIVES MAP + LIVE DUTY -->
+  <div class="grid-2" style="margin-bottom:20px">
+
+    <!-- Maldives Staff Map -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-1px;margin-right:5px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Staff Locations — Maldives
+        </div>
+        <span style="font-size:10px;color:var(--t3)">${activeAll.length} active</span>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <!-- SVG Map -->
+        <div style="flex-shrink:0;background:linear-gradient(175deg,#0d2b3e 0%,#091e2d 60%,#0d2b3e 100%);border-radius:12px;padding:8px 6px;border:1px solid rgba(127,141,116,.18)">
+          <svg viewBox="0 0 110 308" width="96" height="270" style="display:block">
+            <defs>
+              <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            ${_ap.map(a=>{
+              const loc=_lm[a.n];
+              const cnt=loc?loc.c:0;
+              const hasStaff=cnt>0;
+              const rad=a.n==='Malé'?(hasStaff?a.r+2:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.6:a.r*0.65);
+              const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.25)';
+              const tip=hasStaff?`<title>${a.n}: ${cnt} staff</title>`:'';
+              const ring=hasStaff&&a.n==='Malé'?`<circle cx="${a.x}" cy="${a.y}" r="${a.r+6}" fill="none" stroke="#7F8D74" stroke-width="1.2" opacity="0.35" stroke-dasharray="3 2.5"/>`:'';
+              const glow=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+6}" fill="url(#glowGrad)" opacity="0.6"/>`:'';
+              return `${glow}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.92:0.38}">${tip}</circle>${ring}`;
+            }).join('')}
+            <text x="75" y="111" font-family="sans-serif" font-size="6.5" fill="rgba(127,141,116,0.75)" font-weight="600">Malé</text>
+            <line x1="8" y1="300" x2="32" y2="300" stroke="rgba(127,141,116,0.35)" stroke-width="0.8"/>
+            <text x="10" y="307" font-family="sans-serif" font-size="5" fill="rgba(127,141,116,0.45)">~100 km</text>
+          </svg>
+        </div>
+        <!-- Location list -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:2px">
+          ${_la.length?_la.slice(0,6).map(g=>`
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+                <span style="font-size:11px;font-weight:600;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95px">${g.a.n}</span>
+                <span style="font-size:11px;font-weight:800;color:var(--a);flex-shrink:0;margin-left:6px">${g.c}</span>
+              </div>
+              <div style="height:4px;background:var(--s3);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${Math.round(g.c/_lmax*100)}%;background:var(--a);border-radius:99px;transition:width .4s"></div>
+              </div>
+            </div>
+          `).join(''):`<div style="font-size:11px;color:var(--t3);padding:20px 0;text-align:center">Set employee locations to see map</div>`}
+          ${_la.length?`<div style="margin-top:4px;font-size:10px;color:var(--t3)"><span style="color:var(--a);font-weight:700">${_la.length}</span> atoll${_la.length!==1?'s':''} staffed</div>`:''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Duty Schedule -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0;display:flex;align-items:center;gap:7px">
+          <div class="live-dot"></div>On Duty Now
+        </div>
+        <span style="font-size:10px;color:var(--t3)">${today.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      ${!dutyFromRoster?`<div style="font-size:10px;color:var(--t3);margin-bottom:10px;padding:5px 9px;background:var(--s2);border-radius:8px;border:1px solid var(--b)">No roster set for today — showing active staff</div>`:''}
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${dutyDisplay.length?dutyDisplay.map(({r,emp,preset})=>`
+          <div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--s2);border-radius:10px;border:1px solid var(--b)">
+            ${av(emp.name,30)}
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.name}</div>
+              <div style="font-size:10px;color:var(--t3)">${emp.role||emp.dept||'—'}</div>
+            </div>
+            <div style="flex-shrink:0;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;background:${preset.bg};color:${preset.color};border:1px solid ${preset.color}40;white-space:nowrap">
+              ${dutyFromRoster&&preset.start?preset.start:preset.label}
+            </div>
+          </div>
+        `).join(''):`<div class="empty" style="padding:24px 0"><div style="font-size:28px">😴</div><div>No staff on duty right now</div></div>`}
+      </div>
+      ${onShiftNow.length>8?`<div style="font-size:11px;color:var(--t3);text-align:center;margin-top:8px">+${onShiftNow.length-8} more on shift</div>`:''}
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b);display:flex;gap:8px">
+        <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('duty-roster')">📅 Full Roster</button>
+        <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('attendance')">✓ Attendance</button>
+      </div>
     </div>
   </div>
 
