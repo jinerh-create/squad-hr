@@ -811,6 +811,84 @@ select.form-input option{background:var(--s2);}
 <!-- MODAL CONTAINER -->
 <div id="modal-container"></div>
 
+<!-- MAP MARKER ADMIN MODAL -->
+<div id="map-marker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:9000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--s1,#1a1a1a);border-radius:18px;padding:24px;width:100%;max-width:420px;border:1px solid var(--b,#2a2a2a);box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div id="mm-modal-title" style="font-size:16px;font-weight:700;color:var(--t,#fff)">Add Marker</div>
+      <button onclick="closeMapMarkerModal()" style="background:none;border:none;color:var(--t3,#888);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">&times;</button>
+    </div>
+    <input type="hidden" id="mm-id">
+    <input type="hidden" id="mm-x">
+    <input type="hidden" id="mm-y">
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--t3,#888);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Title *</label>
+      <input id="mm-title" placeholder="e.g. Male Office, Resort Velana, Diving Point…" maxlength="60"
+        style="width:100%;padding:10px 12px;background:var(--s2,#222);border:1px solid var(--b,#333);border-radius:10px;color:var(--t,#fff);font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--t3,#888);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Description</label>
+      <textarea id="mm-desc" placeholder="Additional info, notes, contact…" rows="3" maxlength="500"
+        style="width:100%;padding:10px 12px;background:var(--s2,#222);border:1px solid var(--b,#333);border-radius:10px;color:var(--t,#fff);font-size:13px;outline:none;resize:vertical;box-sizing:border-box;font-family:inherit"></textarea>
+    </div>
+    <div style="margin-bottom:22px">
+      <label style="display:block;font-size:11px;font-weight:600;color:var(--t3,#888);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Marker Type</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <label style="cursor:pointer">
+          <input type="radio" name="mm-type-r" value="pin" style="display:none" onchange="document.getElementById('mm-type').value=this.value;updateMarkerTypeUI()">
+          <div class="mm-type-opt" data-type="pin" onclick="selectMarkerType('pin')" style="text-align:center;padding:10px 6px;border-radius:10px;border:2px solid transparent;background:var(--s2,#222);cursor:pointer">
+            <div style="font-size:20px">📍</div>
+            <div style="font-size:9px;color:var(--t3,#888);margin-top:3px;font-weight:600">Location</div>
+          </div>
+        </label>
+        <label style="cursor:pointer">
+          <input type="radio" name="mm-type-r" value="info" style="display:none" onchange="document.getElementById('mm-type').value=this.value;updateMarkerTypeUI()">
+          <div class="mm-type-opt" data-type="info" onclick="selectMarkerType('info')" style="text-align:center;padding:10px 6px;border-radius:10px;border:2px solid transparent;background:var(--s2,#222);cursor:pointer">
+            <div style="font-size:20px">ℹ️</div>
+            <div style="font-size:9px;color:var(--t3,#888);margin-top:3px;font-weight:600">Info</div>
+          </div>
+        </label>
+        <label style="cursor:pointer">
+          <input type="radio" name="mm-type-r" value="alert" style="display:none" onchange="document.getElementById('mm-type').value=this.value;updateMarkerTypeUI()">
+          <div class="mm-type-opt" data-type="alert" onclick="selectMarkerType('alert')" style="text-align:center;padding:10px 6px;border-radius:10px;border:2px solid transparent;background:var(--s2,#222);cursor:pointer">
+            <div style="font-size:20px">⚠️</div>
+            <div style="font-size:9px;color:var(--t3,#888);margin-top:3px;font-weight:600">Alert</div>
+          </div>
+        </label>
+        <label style="cursor:pointer">
+          <input type="radio" name="mm-type-r" value="event" style="display:none" onchange="document.getElementById('mm-type').value=this.value;updateMarkerTypeUI()">
+          <div class="mm-type-opt" data-type="event" onclick="selectMarkerType('event')" style="text-align:center;padding:10px 6px;border-radius:10px;border:2px solid transparent;background:var(--s2,#222);cursor:pointer">
+            <div style="font-size:20px">🎉</div>
+            <div style="font-size:9px;color:var(--t3,#888);margin-top:3px;font-weight:600">Event</div>
+          </div>
+        </label>
+      </div>
+      <input type="hidden" id="mm-type" value="pin">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button id="mm-delete-btn" onclick="deleteMapMarker()" style="display:none;padding:10px 16px;background:rgba(239,68,68,0.12);color:#EF4444;border:1px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Delete</button>
+      <button onclick="closeMapMarkerModal()" style="flex:1;padding:10px;background:var(--s2,#222);color:var(--t3,#888);border:1px solid var(--b,#333);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+      <button onclick="saveMapMarker()" style="flex:2;padding:10px;background:var(--a,#7F8D74);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Save Marker</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAP MARKER VIEW POPUP (read-only for non-admins) -->
+<div id="map-view-popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--s1,#1a1a1a);border-radius:18px;padding:24px;width:100%;max-width:360px;border:1px solid var(--b,#2a2a2a);box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div id="mvp-type" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7F8D74;margin-bottom:5px"></div>
+        <div id="mvp-title" style="font-size:17px;font-weight:800;color:var(--t,#fff)"></div>
+      </div>
+      <button onclick="closeMapViewPopup()" style="background:none;border:none;color:var(--t3,#888);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;margin-top:-4px">&times;</button>
+    </div>
+    <div id="mvp-desc" style="font-size:13px;color:var(--t2,#ccc);line-height:1.55;white-space:pre-wrap"></div>
+    <div id="mvp-by" style="margin-top:14px;font-size:10px;color:var(--t3,#666)"></div>
+    <button onclick="closeMapViewPopup()" style="margin-top:16px;width:100%;padding:10px;background:var(--s2,#222);color:var(--t,#fff);border:1px solid var(--b,#333);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Close</button>
+  </div>
+</div>
+
 <script>
 // ==================== AUTH ====================
 let currentUser = null;
@@ -996,6 +1074,9 @@ const accommodations = [];
 // Maldives — boat/island transfer schedule
 const transfers = [];
 
+// Maldives — interactive map markers
+const mapMarkers = [];
+
 // Calendar custom events
 const calEvents = [];
 
@@ -1010,7 +1091,7 @@ const eomRecords = [];
 
 // ==================== STORAGE ====================
 function saveData() {
-  localStorage.setItem('squad_hr', JSON.stringify({employees, leaves, payroll, attendance, attCorrRequests, suggestions, careerPaths, positions, calNotes, locations, accommodations, transfers, calEvents, discounts, eomRecords, meetings, notices, evaluations, bonusTypes, rosterEntries, recognitions, allowances, bonuses, salaryAdvances, trainings, contracts, employeeDocs, loans, loanPayments, messages, jobs, candidates, probations, resignations, exitInterviews, departments, gpsLogs, rosterSwapRequests, rosterTemplates, expenses, bIncome, bBills, bSavings, bNotes, bSettings, hofRecords, moodLogs}));
+  localStorage.setItem('squad_hr', JSON.stringify({employees, leaves, payroll, attendance, attCorrRequests, suggestions, careerPaths, positions, calNotes, locations, accommodations, transfers, mapMarkers, calEvents, discounts, eomRecords, meetings, notices, evaluations, bonusTypes, rosterEntries, recognitions, allowances, bonuses, salaryAdvances, trainings, contracts, employeeDocs, loans, loanPayments, messages, jobs, candidates, probations, resignations, exitInterviews, departments, gpsLogs, rosterSwapRequests, rosterTemplates, expenses, bIncome, bBills, bSavings, bNotes, bSettings, hofRecords, moodLogs}));
 }
 
 function loadData() {
@@ -1037,6 +1118,7 @@ function loadData() {
     (d.locations||[]).forEach(l => { if (!locations.find(x=>x.id===l.id)) locations.push(l); });
     (d.accommodations||[]).forEach(a => { if (!accommodations.find(x=>x.id===a.id)) accommodations.push(a); });
     (d.transfers||[]).forEach(t => { if (!transfers.find(x=>x.id===t.id)) transfers.push(t); });
+    (d.mapMarkers||[]).forEach(m => { if (!mapMarkers.find(x=>x.id===m.id)) mapMarkers.push(m); });
     (d.calEvents||[]).forEach(e => { if (!calEvents.find(x=>x.id===e.id)) calEvents.push(e); });
     (d.discounts||[]).forEach(d2 => { if (!discounts.find(x=>x.id===d2.id)) discounts.push(d2); });
     (d.eomRecords||[]).forEach(r => { if (!eomRecords.find(x=>x.id===r.id)) eomRecords.push(r); });
@@ -1073,6 +1155,120 @@ function loadData() {
     (d.jobs||[]).forEach(j=>{ if(!jobs.find(x=>x.id===j.id)) jobs.push(j); });
     (d.candidates||[]).forEach(c=>{ if(!candidates.find(x=>x.id===c.id)) candidates.push(c); });
   } catch(e) {}
+}
+
+// ==================== MAP MARKERS ====================
+let mapAddMode = false;
+
+function toggleMapAddMode() {
+  mapAddMode = !mapAddMode;
+  const btn = document.getElementById('map-add-btn');
+  const hint = document.getElementById('map-add-hint');
+  const container = document.getElementById('maldives-map-container');
+  if (btn) { btn.style.background = mapAddMode ? 'var(--a)' : ''; btn.style.color = mapAddMode ? '#fff' : ''; btn.textContent = mapAddMode ? '✕ Cancel' : '+ Add Marker'; }
+  if (hint) hint.style.display = mapAddMode ? '' : 'none';
+  if (container) container.style.cursor = mapAddMode ? 'crosshair' : 'default';
+}
+
+function handleMapClick(event) {
+  if (!mapAddMode) return;
+  const container = document.getElementById('maldives-map-container');
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  const x = parseFloat(((event.clientX - rect.left) / rect.width * 100).toFixed(1));
+  const y = parseFloat(((event.clientY - rect.top) / rect.height * 100).toFixed(1));
+  openMapMarkerModal(null, x, y);
+}
+
+function selectMarkerType(type) {
+  document.getElementById('mm-type').value = type;
+  updateMarkerTypeUI();
+}
+
+function updateMarkerTypeUI() {
+  const type = document.getElementById('mm-type').value;
+  const colors = {pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'};
+  document.querySelectorAll('.mm-type-opt').forEach(el => {
+    const isSelected = el.dataset.type === type;
+    el.style.borderColor = isSelected ? (colors[type]||'#7F8D74') : 'transparent';
+    el.style.background = isSelected ? (colors[type]||'#7F8D74')+'22' : 'var(--s2,#222)';
+  });
+}
+
+function openMapMarkerModal(markerId, clickX, clickY) {
+  const m = markerId ? mapMarkers.find(m => m.id === markerId) : null;
+  document.getElementById('mm-id').value = m ? m.id : '';
+  document.getElementById('mm-x').value = m ? m.x : (clickX != null ? clickX : '');
+  document.getElementById('mm-y').value = m ? m.y : (clickY != null ? clickY : '');
+  document.getElementById('mm-title').value = m ? m.title : '';
+  document.getElementById('mm-desc').value = m ? m.desc : '';
+  selectMarkerType(m ? m.type : 'pin');
+  document.getElementById('mm-delete-btn').style.display = m ? '' : 'none';
+  document.getElementById('mm-modal-title').textContent = m ? 'Edit Marker' : 'Add Marker';
+  document.getElementById('map-marker-modal').style.display = 'flex';
+}
+
+function closeMapMarkerModal() {
+  document.getElementById('map-marker-modal').style.display = 'none';
+  mapAddMode = false;
+  const btn = document.getElementById('map-add-btn');
+  const hint = document.getElementById('map-add-hint');
+  const container = document.getElementById('maldives-map-container');
+  if (btn) { btn.style.background=''; btn.style.color=''; btn.textContent='+ Add Marker'; }
+  if (hint) hint.style.display = 'none';
+  if (container) container.style.cursor = 'default';
+}
+
+function saveMapMarker() {
+  const id = document.getElementById('mm-id').value;
+  const title = document.getElementById('mm-title').value.trim();
+  const desc = document.getElementById('mm-desc').value.trim();
+  const type = document.getElementById('mm-type').value;
+  const x = parseFloat(document.getElementById('mm-x').value);
+  const y = parseFloat(document.getElementById('mm-y').value);
+  if (!title) { document.getElementById('mm-title').focus(); return; }
+  if (id) {
+    const m = mapMarkers.find(m => m.id === id);
+    if (m) { m.title = title; m.desc = desc; m.type = type; m.updatedAt = new Date().toISOString(); }
+  } else {
+    mapMarkers.push({ id: Date.now().toString(), title, desc, type, x, y, createdBy: currentUser ? currentUser.name : 'Admin', createdAt: new Date().toISOString() });
+  }
+  saveData();
+  closeMapMarkerModal();
+  navigate('dashboard');
+}
+
+function deleteMapMarker() {
+  const id = document.getElementById('mm-id').value;
+  if (!id || !confirm('Delete this marker?')) return;
+  const idx = mapMarkers.findIndex(m => m.id === id);
+  if (idx !== -1) mapMarkers.splice(idx, 1);
+  saveData();
+  closeMapMarkerModal();
+  navigate('dashboard');
+}
+
+function viewMapMarker(markerId) {
+  const m = mapMarkers.find(m => m.id === markerId);
+  if (!m) return;
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'hr');
+  if (isAdmin) {
+    openMapMarkerModal(markerId);
+  } else {
+    const icons = {pin:'📍',info:'ℹ️',alert:'⚠️',event:'🎉'};
+    const colors = {pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'};
+    document.getElementById('mvp-type').textContent = (icons[m.type]||'📍') + ' ' + (m.type||'location');
+    document.getElementById('mvp-type').style.color = colors[m.type]||'#EF4444';
+    document.getElementById('mvp-title').textContent = m.title;
+    document.getElementById('mvp-desc').textContent = m.desc || 'No description provided.';
+    const d = new Date(m.createdAt);
+    document.getElementById('mvp-by').textContent = 'Added by ' + (m.createdBy||'Admin') + ' · ' + d.toLocaleDateString();
+    document.getElementById('map-view-popup').style.display = 'flex';
+  }
+}
+
+function closeMapViewPopup() {
+  document.getElementById('map-view-popup').style.display = 'none';
 }
 
 // ==================== SIDEBAR CALENDAR ====================
@@ -1593,101 +1789,110 @@ function renderDashboard() {
     </div>
   </div>
 
-  <!-- MALDIVES MAP + LIVE DUTY -->
-  <div class="grid-2" style="margin-bottom:20px">
-
-    <!-- Maldives Staff Map -->
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="card-title" style="margin-bottom:0">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:-1px;margin-right:5px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          Staff Locations — Maldives
-        </div>
-        <span style="font-size:10px;color:var(--t3)">${activeAll.length} active · ${_la.length} atoll${_la.length!==1?'s':''}</span>
+  <!-- MALDIVES INTERACTIVE MAP -->
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0">
+        📍 Maldives Map
       </div>
-      <!-- Full-width landscape map -->
-      <div style="background:linear-gradient(160deg,#0a1e2d 0%,#0d2b3e 50%,#091922 100%);border-radius:12px;padding:10px 8px 6px;margin-bottom:12px;border:1px solid rgba(127,141,116,.18);position:relative;overflow:hidden">
-        <div style="position:absolute;top:6px;left:10px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">N</div>
-        <div style="position:absolute;top:6px;right:10px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">S</div>
-        <svg viewBox="0 0 310 80" width="100%" height="80" style="display:block">
-          <defs>
-            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.55"/>
-              <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
-            </radialGradient>
-            <radialGradient id="maleGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#a0b896" stop-opacity="0.7"/>
-              <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <!-- Ocean wave texture lines -->
-          <line x1="0" y1="40" x2="310" y2="40" stroke="rgba(127,141,116,0.06)" stroke-width="12"/>
-          <!-- Atoll dots -->
-          ${_ap.map(a=>{
-            const loc=_lm[a.n];
-            const cnt=loc?loc.c:0;
-            const hasStaff=cnt>0;
-            const rad=a.n==='Malé'?(hasStaff?a.r+3:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.7:a.r*0.7);
-            const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.22)';
-            const tip=hasStaff?`<title>${a.n}: ${cnt} staff</title>`:'<title>'+a.n+'</title>';
-            const glowEl=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+7}" fill="${a.n==='Malé'?'url(#maleGlow)':'url(#glowGrad)'}" opacity="0.7"/>`:'';
-            const ring=a.n==='Malé'?`<circle cx="${a.x}" cy="${a.y}" r="${a.r+(hasStaff?7:4)}" fill="none" stroke="${hasStaff?'#7F8D74':'rgba(127,141,116,0.2)'}" stroke-width="1" opacity="${hasStaff?0.45:0.25}" stroke-dasharray="2.5 2"/>`:'';
-            const countBadge=hasStaff&&cnt>1?`<text x="${a.x}" y="${a.y+rad+9}" font-family="sans-serif" font-size="6" fill="#7F8D74" text-anchor="middle" font-weight="700">${cnt}</text>`:'';
-            return `${glowEl}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.95:0.35}">${tip}</circle>${ring}${countBadge}`;
-          }).join('')}
-          <!-- Malé label -->
-          <text x="108" y="63" font-family="sans-serif" font-size="7" fill="rgba(127,141,116,0.8)" text-anchor="middle" font-weight="700">Malé</text>
-          <!-- gap indicator between Laamu and Gaafu -->
-          <line x1="232" y1="40" x2="244" y2="40" stroke="rgba(127,141,116,0.15)" stroke-width="1" stroke-dasharray="2 3"/>
-        </svg>
-        <div style="text-align:center;font-size:8px;color:rgba(127,141,116,0.3);letter-spacing:.05em;margin-top:2px">← North Atolls · · · Indian Ocean · · · South Atolls →</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:10px;color:var(--t3)">${mapMarkers.length} marker${mapMarkers.length!==1?'s':''}</span>
+        ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="toggleMapAddMode()" style="font-size:11px;padding:4px 12px">+ Add Marker</button>`:''}
       </div>
-      <!-- Location breakdown grid -->
-      ${_la.length?`
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-        ${_la.slice(0,6).map(g=>`
-          <div style="background:var(--s2);border-radius:10px;padding:8px 10px;border:1px solid var(--b)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-              <span style="font-size:10px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px">${g.a.n}</span>
-              <span style="font-size:12px;font-weight:900;color:var(--a)">${g.c}</span>
-            </div>
-            <div style="height:3px;background:var(--s3);border-radius:99px;overflow:hidden">
-              <div style="height:100%;width:${Math.round(g.c/_lmax*100)}%;background:var(--a);border-radius:99px"></div>
-            </div>
-          </div>
-        `).join('')}
-      </div>`:`
-      <div style="text-align:center;padding:10px 0;font-size:11px;color:var(--t3)">Add employee locations to see atoll distribution</div>`}
     </div>
-
-    <!-- Live Duty Schedule -->
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="margin-bottom:0;display:flex;align-items:center;gap:7px">
-          <div class="live-dot"></div>On Duty Now
+    <div id="maldives-map-container" onclick="handleMapClick(event)"
+         style="position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--b);cursor:default;background:#000;min-height:220px">
+      <img src="maldives-map.png" id="map-img" style="width:100%;display:block;border-radius:12px"
+           onerror="this.style.display='none';document.getElementById('map-svg-fallback').style.display='block'">
+      <div id="map-svg-fallback" style="display:none;background:linear-gradient(160deg,#0a1e2d 0%,#0d2b3e 50%,#091922 100%);padding:16px 10px 10px;border-radius:12px">
+        <div style="position:relative">
+          <div style="position:absolute;top:0;left:6px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">N</div>
+          <div style="position:absolute;top:0;right:6px;font-size:8px;font-weight:700;color:rgba(127,141,116,0.5);letter-spacing:.08em">S</div>
+          <svg viewBox="0 0 310 80" width="100%" height="80" style="display:block">
+            <defs>
+              <radialGradient id="glowGrad2" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#7F8D74" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="#7F8D74" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <line x1="0" y1="40" x2="310" y2="40" stroke="rgba(127,141,116,0.06)" stroke-width="12"/>
+            ${_ap.map(a=>{
+              const loc=_lm[a.n];const cnt=loc?loc.c:0;const hasStaff=cnt>0;
+              const rad=a.n==='Malé'?(hasStaff?a.r+3:a.r):(hasStaff?a.r+Math.min(cnt,4)*0.7:a.r*0.7);
+              const fill=hasStaff?'#7F8D74':'rgba(127,141,116,0.22)';
+              const glowEl=hasStaff?`<circle cx="${a.x}" cy="${a.y}" r="${rad+7}" fill="url(#glowGrad2)" opacity="0.7"/>`:'';
+              const countBadge=hasStaff&&cnt>1?`<text x="${a.x}" y="${a.y+rad+9}" font-family="sans-serif" font-size="6" fill="#7F8D74" text-anchor="middle" font-weight="700">${cnt}</text>`:'';
+              return `${glowEl}<circle cx="${a.x}" cy="${a.y}" r="${rad}" fill="${fill}" opacity="${hasStaff?0.95:0.35}"><title>${a.n}${hasStaff?': '+cnt+' staff':''}</title></circle>${countBadge}`;
+            }).join('')}
+            <text x="108" y="63" font-family="sans-serif" font-size="7" fill="rgba(127,141,116,0.8)" text-anchor="middle" font-weight="700">Malé</text>
+            <line x1="232" y1="40" x2="244" y2="40" stroke="rgba(127,141,116,0.15)" stroke-width="1" stroke-dasharray="2 3"/>
+          </svg>
+          <div style="text-align:center;font-size:8px;color:rgba(127,141,116,0.3);letter-spacing:.05em;margin-top:4px">← North · · · Indian Ocean · · · South →</div>
         </div>
-        <span style="font-size:10px;color:var(--t3)">${today.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
       </div>
-      ${!dutyFromRoster?`<div style="font-size:10px;color:var(--t3);margin-bottom:10px;padding:5px 9px;background:var(--s2);border-radius:8px;border:1px solid var(--b)">No roster set for today — showing active staff</div>`:''}
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${dutyDisplay.length?dutyDisplay.map(({r,emp,preset})=>`
-          <div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--s2);border-radius:10px;border:1px solid var(--b)">
-            ${av(emp.name,30)}
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.name}</div>
-              <div style="font-size:10px;color:var(--t3)">${emp.role||emp.dept||'—'}</div>
-            </div>
-            <div style="flex-shrink:0;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;background:${preset.bg};color:${preset.color};border:1px solid ${preset.color}40;white-space:nowrap">
-              ${dutyFromRoster&&preset.start?preset.start:preset.label}
-            </div>
+      <!-- Markers overlay -->
+      ${mapMarkers.map(m=>{
+        const _mc={pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'};
+        const _mi={pin:'📍',info:'ℹ️',alert:'⚠️',event:'🎉'};
+        const col=_mc[m.type]||'#EF4444';
+        const ico=_mi[m.type]||'📍';
+        const lbl=m.title.length>14?m.title.slice(0,14)+'…':m.title;
+        return `<div onclick="event.stopPropagation();viewMapMarker('${m.id}')"
+          style="position:absolute;left:${m.x}%;top:${m.y}%;transform:translate(-50%,-50%);cursor:pointer;z-index:10;display:flex;flex-direction:column;align-items:center;gap:2px"
+          title="${m.title}">
+          <div style="width:26px;height:26px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:13px;border:2.5px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,0.7);transition:transform .15s" onmouseenter="this.style.transform='scale(1.2)'" onmouseleave="this.style.transform='scale(1)'">${ico}</div>
+          <div style="background:rgba(0,0,0,0.82);color:#fff;font-size:8px;white-space:nowrap;padding:2px 6px;border-radius:4px;pointer-events:none">${lbl}</div>
+        </div>`;
+      }).join('')}
+      <!-- Add mode hint overlay -->
+      <div id="map-add-hint" style="display:none;position:absolute;inset:0;border:2.5px dashed rgba(127,141,116,0.65);border-radius:12px;pointer-events:none;z-index:20;background:rgba(0,0,0,0.12)">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);padding:10px 22px;border-radius:10px;color:#7F8D74;font-size:13px;font-weight:600;white-space:nowrap;border:1px solid rgba(127,141,116,0.35)">
+          Click anywhere on the map to place a marker
+        </div>
+      </div>
+    </div>
+    <!-- Marker legend chips -->
+    ${mapMarkers.length?`
+    <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:7px">
+      ${mapMarkers.map(m=>{
+        const _mc={pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'};
+        const _mi={pin:'📍',info:'ℹ️',alert:'⚠️',event:'🎉'};
+        return `<div onclick="viewMapMarker('${m.id}')"
+          style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--s2);border-radius:20px;border:1px solid ${_mc[m.type]||'var(--b)'}44;cursor:pointer;font-size:11px;color:var(--t);transition:background .15s" onmouseenter="this.style.background='var(--s3)'" onmouseleave="this.style.background='var(--s2)'">
+          ${_mi[m.type]||'📍'} ${m.title}
+        </div>`;
+      }).join('')}
+    </div>
+    `:'<div style="margin-top:10px;font-size:11px;color:var(--t3);text-align:center">'+(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr')?'Click <b>+ Add Marker</b> to pin locations, notes, or alerts on the map':'No markers added yet')+'</div>'}
+  </div>
+
+  <!-- LIVE DUTY SCHEDULE -->
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0;display:flex;align-items:center;gap:7px">
+        <div class="live-dot"></div>On Duty Now
+      </div>
+      <span style="font-size:10px;color:var(--t3)">${today.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+    </div>
+    ${!dutyFromRoster?`<div style="font-size:10px;color:var(--t3);margin-bottom:10px;padding:5px 9px;background:var(--s2);border-radius:8px;border:1px solid var(--b)">No roster set for today — showing active staff</div>`:''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px">
+      ${dutyDisplay.length?dutyDisplay.map(({r,emp,preset})=>`
+        <div style="display:flex;align-items:center;gap:9px;padding:7px 9px;background:var(--s2);border-radius:10px;border:1px solid var(--b)">
+          ${av(emp.name,30)}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${emp.name}</div>
+            <div style="font-size:10px;color:var(--t3)">${emp.role||emp.dept||'—'}</div>
           </div>
-        `).join(''):`<div class="empty" style="padding:24px 0"><div style="font-size:28px">😴</div><div>No staff on duty right now</div></div>`}
-      </div>
-      ${onShiftNow.length>8?`<div style="font-size:11px;color:var(--t3);text-align:center;margin-top:8px">+${onShiftNow.length-8} more on shift</div>`:''}
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b);display:flex;gap:8px">
-        <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('duty-roster')">📅 Full Roster</button>
-        <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('attendance')">✓ Attendance</button>
-      </div>
+          <div style="flex-shrink:0;font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;background:${preset.bg};color:${preset.color};border:1px solid ${preset.color}40;white-space:nowrap">
+            ${dutyFromRoster&&preset.start?preset.start:preset.label}
+          </div>
+        </div>
+      `).join(''):`<div class="empty" style="padding:24px 0;grid-column:1/-1"><div style="font-size:28px">😴</div><div>No staff on duty right now</div></div>`}
+    </div>
+    ${onShiftNow.length>8?`<div style="font-size:11px;color:var(--t3);text-align:center;margin-top:8px">+${onShiftNow.length-8} more on shift</div>`:''}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b);display:flex;gap:8px">
+      <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('duty-roster')">📅 Full Roster</button>
+      <button class="btn btn-sm" style="flex:1;font-size:11px" onclick="navigate('attendance')">✓ Attendance</button>
     </div>
   </div>
 
