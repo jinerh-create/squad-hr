@@ -1355,7 +1355,7 @@ function _maldivesInfographic() {
     762,88,771,84,780,83,789,86,795,92,793,100,786,104,777,106,768,103,762,97
   ];
   let grid = '';
-  for (let gx = 11; gx < 835; gx += 22) for (let gy = 8; gy < 132; gy += 20) grid += `<circle cx="${gx}" cy="${gy}" r="1.3" fill="#8896a8" opacity="0.2"/>`;
+  for (let gx = 11; gx < 835; gx += 22) for (let gy = 8; gy < 272; gy += 20) grid += `<circle cx="${gx}" cy="${gy}" r="1.3" fill="#8896a8" opacity="0.2"/>`;
   let adots = '';
   for (let i = 0; i < D.length; i += 2) adots += `<circle cx="${D[i]}" cy="${D[i+1]}" r="3.8" fill="#4a5a72" opacity="0.72"/>`;
   const PC = ['#e53935','#1e88e5','#f9a825','#7b1fa2','#00897b','#d81b60'];
@@ -1365,7 +1365,7 @@ function _maldivesInfographic() {
     const px=Math.round((7.1-m.lat)/7.8*780+30), py=Math.round((m.lng-72.4)/1.4*100+20), col=PC[i%PC.length];
     pins += `<g onclick="viewMapMarker('${m.id}')" style="cursor:pointer"><ellipse cx="${px+1}" cy="${py+19}" rx="4" ry="1.5" fill="rgba(0,0,0,0.2)"/><circle cx="${px}" cy="${py}" r="9" fill="${col}"/><polygon points="${px-5},${py+5} ${px+5},${py+5} ${px},${py+18}" fill="${col}"/><circle cx="${px}" cy="${py}" r="3.5" fill="white" opacity="0.9"/></g>`;
   });
-  return `<svg viewBox="0 0 840 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"><defs><linearGradient id="lbg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dde3ef"/><stop offset="100%" stop-color="#c9d3e3"/></linearGradient><filter id="pshadow"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="rgba(0,0,0,0.3)"/></filter></defs><rect width="840" height="140" fill="url(#lbg)"/>${grid}${adots}<circle cx="300" cy="94" r="5.5" fill="#1e3a5f" opacity="0.85"/><circle cx="300" cy="94" r="10" fill="none" stroke="#1e3a5f" stroke-width="1.2" opacity="0.35"/><g filter="url(#pshadow)">${pins}</g><text x="14" y="133" font-size="8" fill="#1e3a5f" opacity="0.4" letter-spacing="3" font-family="system-ui,sans-serif" font-weight="700">REPUBLIC OF MALDIVES</text><text x="826" y="133" font-size="7" fill="#1e3a5f" opacity="0.3" font-family="system-ui,sans-serif" text-anchor="end">INDIAN OCEAN</text></svg>`;
+  return `<svg viewBox="0 0 840 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"><defs><linearGradient id="lbg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dde3ef"/><stop offset="100%" stop-color="#c9d3e3"/></linearGradient><filter id="pshadow"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="rgba(0,0,0,0.3)"/></filter></defs><rect width="840" height="280" fill="url(#lbg)"/>${grid}<g transform="translate(0,70)">${adots}<circle cx="300" cy="94" r="5.5" fill="#1e3a5f" opacity="0.85"/><circle cx="300" cy="94" r="10" fill="none" stroke="#1e3a5f" stroke-width="1.2" opacity="0.35"/><g filter="url(#pshadow)">${pins}</g></g><text x="14" y="272" font-size="8" fill="#1e3a5f" opacity="0.4" letter-spacing="3" font-family="system-ui,sans-serif" font-weight="700">REPUBLIC OF MALDIVES</text><text x="826" y="272" font-size="7" fill="#1e3a5f" opacity="0.3" font-family="system-ui,sans-serif" text-anchor="end">INDIAN OCEAN</text></svg>`;
 }
 function _markerColor(type) { return {pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'}[type]||'#EF4444'; }
 function _markerIcon(type) { return {pin:'📍',info:'ℹ️',alert:'⚠️',event:'🎉'}[type]||'📍'; }
