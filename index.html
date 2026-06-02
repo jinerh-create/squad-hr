@@ -1305,12 +1305,13 @@ function initMaldivesMap() {
   if (_leafletMap) { try { _leafletMap.remove(); } catch(e){} _leafletMap = null; _leafletLayers = {}; }
 
   _leafletMap = L.map('leaflet-map', {
-    center: [3.5, 73.5],
+    center: [3.2, 73.2],
     zoom: 7,
-    minZoom: 5,
+    minZoom: 6,
     maxZoom: 18,
     zoomControl: true
   });
+  _leafletMap.setView([3.2, 73.2], 7);
 
   // Esri satellite tiles — free, no API key
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -2014,7 +2015,7 @@ function renderDashboard() {
       </div>
     </div>
     <!-- Full-width satellite map -->
-    <div id="leaflet-map" style="width:100%;height:460px;z-index:0"></div>
+    <div id="leaflet-map" style="width:100%;height:560px;z-index:0"></div>
     <!-- Marker chips below -->
     ${mapMarkers.length?`
     <div style="padding:10px 14px;border-top:1px solid var(--b);background:var(--s1);display:flex;flex-wrap:wrap;gap:7px">
