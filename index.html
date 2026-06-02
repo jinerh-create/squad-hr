@@ -1367,6 +1367,28 @@ function _maldivesInfographic() {
   });
   return `<svg viewBox="0 0 840 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"><defs><linearGradient id="lbg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#dde3ef"/><stop offset="100%" stop-color="#c9d3e3"/></linearGradient><filter id="pshadow"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="rgba(0,0,0,0.3)"/></filter></defs><rect width="840" height="280" fill="url(#lbg)"/>${grid}<g transform="translate(0,70)">${adots}<circle cx="300" cy="94" r="5.5" fill="#1e3a5f" opacity="0.85"/><circle cx="300" cy="94" r="10" fill="none" stroke="#1e3a5f" stroke-width="1.2" opacity="0.35"/><g filter="url(#pshadow)">${pins}</g></g><text x="14" y="272" font-size="8" fill="#1e3a5f" opacity="0.4" letter-spacing="3" font-family="system-ui,sans-serif" font-weight="700">REPUBLIC OF MALDIVES</text><text x="826" y="272" font-size="7" fill="#1e3a5f" opacity="0.3" font-family="system-ui,sans-serif" text-anchor="end">INDIAN OCEAN</text></svg>`;
 }
+function _fitMvMap() {
+  const canvas = document.getElementById('mv-canvas');
+  const wrap = document.getElementById('mv-wrap');
+  if (!canvas || !wrap) return;
+  const img = new Image();
+  img.onload = function() {
+    const cw = wrap.offsetWidth || 800;
+    // After -90° rotation: img.naturalHeight becomes displayed width, img.naturalWidth becomes displayed height
+    const scale = cw / img.naturalHeight;
+    const ch = Math.round(img.naturalWidth * scale);
+    canvas.width = cw;
+    canvas.height = ch;
+    wrap.style.minHeight = ch + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(cw / 2, ch / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.drawImage(img, -img.naturalWidth * scale / 2, -img.naturalHeight * scale / 2, img.naturalWidth * scale, img.naturalHeight * scale);
+    ctx.restore();
+  };
+  img.src = 'maldives-map.png';
+}
 function _markerColor(type) { return {pin:'#EF4444',info:'#3B82F6',alert:'#F59E0B',event:'#10B981'}[type]||'#EF4444'; }
 function _markerIcon(type) { return {pin:'📍',info:'ℹ️',alert:'⚠️',event:'🎉'}[type]||'📍'; }
 
@@ -1764,7 +1786,7 @@ function render() {
     'account-management': renderAccountManagement,
   };
   m.innerHTML = renders[page] ? renders[page]() : '';
-  if (page === 'dashboard') { initDashboardCharts(); setTimeout(initMaldivesMap, 100); }
+  if (page === 'dashboard') { initDashboardCharts(); setTimeout(_fitMvMap, 80); }
   if (page === 'expenses') setTimeout(initBudgetCharts, 50);
   setTimeout(updateNotifBadge, 80);
 }
@@ -1875,19 +1897,6 @@ function renderDashboard() {
     ? Math.round(attendance.filter(a=>a.status==='present'||a.status==='late').length/attendance.length*100)
     : (employees.length ? 94 : 0);
 
-  // Build Maldives infographic SVG inline
-  const _md=[52,78,62,80,68,88,62,97,52,100,43,97,39,88,44,80,55,89,90,82,100,80,108,85,112,92,107,100,97,103,88,98,84,90,125,84,133,82,140,87,142,94,136,99,127,98,122,92,158,86,165,84,172,89,173,96,166,100,158,97,155,90,194,84,202,82,210,86,214,93,210,100,202,103,193,99,189,92,228,86,236,84,244,87,248,93,244,100,236,102,228,99,224,92,236,93,262,87,270,85,276,90,275,97,268,100,261,96,259,90,292,87,300,85,308,88,312,95,308,102,300,104,292,101,288,94,300,94,330,90,337,86,344,84,351,87,357,92,358,99,353,105,345,108,337,106,331,100,329,93,343,96,370,90,377,88,384,90,390,95,389,102,382,106,374,104,369,98,408,91,415,89,419,95,416,100,408,101,405,95,432,90,439,88,444,93,443,99,436,101,431,96,457,91,463,89,467,94,464,99,457,100,454,95,478,90,485,88,489,93,487,99,480,100,476,95,502,88,510,86,517,89,519,96,515,101,507,103,500,99,498,92,532,88,540,86,547,89,552,95,549,102,541,104,533,101,529,94,640,88,650,83,661,82,672,84,680,89,686,96,684,104,677,108,666,110,655,108,645,104,639,97,652,97,664,96,698,86,707,84,715,87,720,93,718,101,711,105,703,103,697,97,743,92,747,96,744,90,762,88,771,84,780,83,789,86,795,92,793,100,786,104,777,106,768,103,762,97];
-  let _mg='',_ma='';
-  for(let gx=11;gx<835;gx+=22) for(let gy=8;gy<272;gy+=20) _mg+='<circle cx="'+gx+'" cy="'+gy+'" r="1.2" fill="#1e4060" opacity="0.35"/>';
-  for(let i=0;i<_md.length;i+=2) _ma+='<circle cx="'+_md[i]+'" cy="'+_md[i+1]+'" r="3.8" fill="#00c8d8" opacity="0.85"/>';
-  const _mpc=['#ff4757','#ffa502','#2ed573','#eccc68','#a29bfe','#fd79a8'];
-  let _mp='';
-  mapMarkers.forEach((m,i)=>{
-    if(m.lat==null||m.lng==null) return;
-    const px=Math.round((7.1-m.lat)/7.8*780+30),py=Math.round((m.lng-72.4)/1.4*100+20),col=_mpc[i%_mpc.length];
-    _mp+='<g onclick="viewMapMarker(\''+m.id+'\')" style="cursor:pointer"><ellipse cx="'+(px+1)+'" cy="'+(py+89)+'" rx="4" ry="1.5" fill="rgba(0,0,0,0.3)"/><circle cx="'+px+'" cy="'+(py+70)+'" r="9" fill="'+col+'"/><polygon points="'+(px-5)+','+(py+75)+' '+(px+5)+','+(py+75)+' '+px+','+(py+88)+'" fill="'+col+'"/><circle cx="'+px+'" cy="'+(py+70)+'" r="3.5" fill="white" opacity="0.9"/></g>';
-  });
-  const _msvg='<svg viewBox="0 0 840 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"><defs><linearGradient id="mmg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0e1f35"/><stop offset="100%" stop-color="#070d1a"/></linearGradient></defs><rect width="840" height="280" fill="url(#mmg)"/>'+_mg+'<g transform="translate(0,70)">'+_ma+'<circle cx="300" cy="94" r="5.5" fill="#00e5ff" opacity="0.9"/><circle cx="300" cy="94" r="10" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.4"/>'+_mp+'</g><text x="14" y="272" font-size="8" fill="#00c8d8" opacity="0.35" letter-spacing="3" font-family="system-ui,sans-serif" font-weight="700">REPUBLIC OF MALDIVES</text><text x="826" y="272" font-size="7" fill="#00c8d8" opacity="0.3" font-family="system-ui,sans-serif" text-anchor="end">INDIAN OCEAN</text></svg>';
 
   // Staff turnover (terminated ratio — simplified)
   const terminated = employees.filter(e=>e.status==='terminated').length;
@@ -2063,8 +2072,10 @@ function renderDashboard() {
         ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="openMapMarkerModal(null)" style="font-size:11px;padding:5px 14px">📍 Add Marker</button>`:''}
       </div>
     </div>
-    <!-- Maldives infographic map -->
-    <div style="width:100%;overflow:hidden;background:#070d1a;">${_msvg}</div>
+    <!-- Maldives map canvas -->
+    <div id="mv-wrap" style="width:100%;overflow:hidden;background:#5ab8d3;min-height:160px;">
+      <canvas id="mv-canvas" style="display:block;width:100%;"></canvas>
+    </div>
     <!-- Marker chips below -->
     ${mapMarkers.length?`
     <div style="padding:10px 14px;border-top:1px solid var(--b);background:var(--s1);display:flex;flex-wrap:wrap;gap:7px">
