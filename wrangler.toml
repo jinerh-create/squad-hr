@@ -1,10 +1,12 @@
 name = "squad-hr"
 account_id = "f56a13761f6f9fca6581a4968ded15d8"
 compatibility_date = "2024-09-23"
-pages_build_output_dir = "."
+main = "sync-worker/worker.js"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "squad-hr-db"
 database_id = "136ffc78-22f5-4556-8f0a-c3593a7a6d73"
-migrations_dir = "migrations"
+
+[vars]
+SYNC_TOKEN = "sqhr_sync_2026"
