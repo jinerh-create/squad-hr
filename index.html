@@ -331,14 +331,25 @@ select.form-input option{background:var(--s2);}
 
 /* RESPONSIVE */
 @media(max-width:900px){
-  :root{--sw:60px;}
-  .nav-item span,.sb-logo p,.sb-logo h1,.sb-user-name,.sb-user-role,.nav-badge{display:none;}
-  .sb-logo-icon{margin:0 auto;}
-  .sb-logo{text-align:center;}
-  .sb-user{justify-content:center;}
-  #main{padding:16px;}
+  :root{--sw:0px;}
+  #sidebar{transform:translateX(-260px);width:260px!important;transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:200;box-shadow:4px 0 24px rgba(0,0,0,.35);}
+  #sidebar.mob-open{transform:translateX(0);}
+  #mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;backdrop-filter:blur(2px);}
+  #mob-overlay.show{display:block;}
+  #main{padding:10px 12px 80px;}
   .grid-4{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:1fr 1fr;}
+  #topbar{padding:0 12px;}
+  /* BOTTOM NAV */
+  #bottom-nav{display:flex!important;}
 }
+/* Bottom nav hidden on desktop */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:var(--s1);border-top:1px solid var(--b);z-index:150;align-items:center;justify-content:space-around;padding:0 4px;padding-bottom:env(safe-area-inset-bottom,0px);}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;background:none;border:none;cursor:pointer;padding:6px 4px;font-family:inherit;color:var(--t3);font-size:9px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;transition:color .15s;}
+.bnav-btn.active{color:var(--a);}
+.bnav-btn svg{flex-shrink:0;}
+#mob-menu-btn{display:none;background:none;border:none;cursor:pointer;padding:6px;color:var(--t);}
+@media(max-width:900px){#mob-menu-btn{display:flex;align-items:center;}}
 
 /* PULSE ANIMATION */
 @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(127,141,116,.5)}70%{box-shadow:0 0 0 8px rgba(127,141,116,0)}100%{box-shadow:0 0 0 0 rgba(127,141,116,0)}}
@@ -796,9 +807,15 @@ select.form-input option{background:var(--s2);}
   </div>
 </aside>
 
+<!-- MOBILE OVERLAY -->
+<div id="mob-overlay" onclick="closeMobSidebar()"></div>
+
 <!-- HEADER -->
 <header id="header" style="display:none">
-  <div class="hdr-left">
+  <div class="hdr-left" style="display:flex;align-items:center;gap:8px">
+    <button id="mob-menu-btn" onclick="toggleMobSidebar()" title="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <span id="hdr-page" class="hdr-page">Dashboard</span>
   </div>
   <div class="hdr-right">
@@ -815,6 +832,30 @@ select.form-input option{background:var(--s2);}
     <div class="hdr-av" id="hdr-av" onclick="doLogout()" title="Sign out" style="cursor:pointer">?</div>
   </div>
 </header>
+
+<!-- BOTTOM NAVIGATION (mobile only) -->
+<nav id="bottom-nav">
+  <button class="bnav-btn active" id="bn-dashboard" onclick="navigate('dashboard');setBnav('dashboard')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+    Home
+  </button>
+  <button class="bnav-btn" id="bn-employees" onclick="navigate('employees');setBnav('employees')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Staff
+  </button>
+  <button class="bnav-btn" id="bn-attendance" onclick="navigate('attendance');setBnav('attendance')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Attend
+  </button>
+  <button class="bnav-btn" id="bn-leave" onclick="navigate('leave');setBnav('leave')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Leave
+  </button>
+  <button class="bnav-btn" id="bn-more" onclick="toggleMobSidebar()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    More
+  </button>
+</nav>
 
 <!-- MAIN -->
 <main id="main" style="display:none"></main>
@@ -1792,6 +1833,22 @@ function render() {
   if (page === 'dashboard') { initDashboardCharts(); setTimeout(_fitMvMap, 80); }
   if (page === 'expenses') setTimeout(initBudgetCharts, 50);
   setTimeout(updateNotifBadge, 80);
+}
+
+// ==================== MOBILE NAV ====================
+function toggleMobSidebar(){
+  document.getElementById('sidebar').classList.toggle('mob-open');
+  document.getElementById('mob-overlay').classList.toggle('show');
+}
+function closeMobSidebar(){
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('mob-overlay').classList.remove('show');
+}
+function setBnav(page){
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  const m={'dashboard':'bn-dashboard','employees':'bn-employees','attendance':'bn-attendance','leave':'bn-leave'};
+  if(m[page]) document.getElementById(m[page])?.classList.add('active');
+  closeMobSidebar();
 }
 
 // ==================== HELPERS ====================
