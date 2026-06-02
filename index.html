@@ -2010,12 +2010,13 @@ function renderDashboard() {
         <span id="map-marker-count" style="font-size:10px;color:var(--t3);background:var(--s2);padding:2px 8px;border-radius:20px">${mapMarkers.length} marker${mapMarkers.length!==1?'s':''}</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:10px;color:var(--t3)">Scroll to zoom · Drag to pan</span>
-        ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="toggleMapAddMode()" style="font-size:11px;padding:5px 14px">📍 Add Marker</button>`:''}
+        ${(currentUser&&(currentUser.role==='admin'||currentUser.role==='hr'))?`<button class="btn btn-sm" id="map-add-btn" onclick="openMapMarkerModal(null)" style="font-size:11px;padding:5px 14px">📍 Add Marker</button>`:''}
       </div>
     </div>
-    <!-- Full-width satellite map -->
-    <div id="leaflet-map" style="width:100%;height:560px;z-index:0"></div>
+    <!-- Full-width Maldives map image -->
+    <div style="width:100%;height:420px;background:#000;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">
+      <img src="maldives-map.png" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(90deg);width:420px;height:auto;max-width:none;">
+    </div>
     <!-- Marker chips below -->
     ${mapMarkers.length?`
     <div style="padding:10px 14px;border-top:1px solid var(--b);background:var(--s1);display:flex;flex-wrap:wrap;gap:7px">
@@ -2024,7 +2025,7 @@ function renderDashboard() {
         ${_markerIcon(m.type)} ${m.title}
       </div>`).join('')}
     </div>
-    `:`<div style="padding:10px 16px;background:var(--s1);border-top:1px solid var(--b);font-size:11px;color:var(--t3);text-align:center">${currentUser&&(currentUser.role==='admin'||currentUser.role==='hr')?'Click <b>📍 Add Marker</b> then click anywhere on the satellite map to pin a location':'No markers placed yet'}</div>`}
+    `:`<div style="padding:10px 16px;background:var(--s1);border-top:1px solid var(--b);font-size:11px;color:var(--t3);text-align:center">${currentUser&&(currentUser.role==='admin'||currentUser.role==='hr')?'Click <b>📍 Add Marker</b> to pin a location':'No markers placed yet'}</div>`}
   </div>
 
   <!-- LIVE DUTY SCHEDULE -->
