@@ -1431,9 +1431,29 @@ function _fitMvMap() {
       const r=_d[i*4],g=_d[i*4+1],b=_d[i*4+2];
       const br=(r+g+b)/3;
       // Teal/dark ocean background: low R, G and B moderate and similar
-      // KEEP ONLY VIVID GREEN VEGETATION
-      const isGreen=g>r+20&&g>b+15&&g>100&&g<235&&b<r+25&&r<200;
+      // KEEP ONLY GREEN VEGETATION - strict
+      const gDomR=g-r;const gDomB=g-b;
+      const isGreen=gDomR>22&&gDomB>12&&g>110&&g<240&&b<r+20;
       if(!isGreen){_d[i*4]=_bgR;_d[i*4+1]=_bgG;_d[i*4+2]=_bgB;}
+    }
+    // Second pass: remove isolated single pixels (dots) not surrounded by green
+    const _id2=ctx.getImageData(0,0,cw,ch),_d2=_id2.data;
+    for(let y=1;y<ch-1;y++){for(let x=1;x<cw-1;x++){
+      const i=y*cw+x;
+      const r=_d2[i*4],g=_d2[i*4+1],b=_d2[i*4+2];
+      if(r===_bgR&&g===_bgG&&b===_bgB)continue;
+      // Count green neighbors
+      let ng=0;
+      for(let dy=-2;dy<=2;dy++){for(let dx=-2;dx<=2;dx++){
+        const ni=(y+dy)*cw+(x+dx);
+        if(ni<0||ni>=cw*ch)continue;
+        if(!(_d2[ni*4]===_bgR&&_d2[ni*4+1]===_bgG&&_d2[ni*4+2]===_bgB))ng++;
+      }}
+      // If fewer than 3 green neighbors, it is an isolated dot - remove it
+      if(ng<4){_d2[i*4]=_bgR;_d2[i*4+1]=_bgG;_d2[i*4+2]=_bgB;}
+    }}
+    ctx.putImageData(_id2,0,0);
+    const _dummy=0;if(_dummy){
     }
     ctx.putImageData(_id,0,0);
   };
