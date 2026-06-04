@@ -1431,8 +1431,8 @@ function _fitMvMap() {
       const r=_d[i*4],g=_d[i*4+1],b=_d[i*4+2];
       const br=(r+g+b)/3;
       // Teal/dark ocean background: low R, G and B moderate and similar
-      // KEEP ONLY GREEN: replace everything that is not clearly green vegetation
-      const isGreen=g>r+8&&g>b+5&&g>80&&g<230&&r<210&&b<210;
+      // KEEP ONLY VIVID GREEN VEGETATION
+      const isGreen=g>r+20&&g>b+15&&g>100&&g<235&&b<r+25&&r<200;
       if(!isGreen){_d[i*4]=_bgR;_d[i*4+1]=_bgG;_d[i*4+2]=_bgB;}
     }
     ctx.putImageData(_id,0,0);
