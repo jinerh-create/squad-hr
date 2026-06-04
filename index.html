@@ -1432,12 +1432,13 @@ function _fitMvMap() {
       const br=(r+g+b)/3;
       // Teal/dark ocean background: low R, G and B moderate and similar
       const isTeal=r<65&&g>25&&b>25&&g<140&&b<140&&Math.abs(g-b)<40&&g>r+10;
-      // White/grey blur haze: all channels high and similar
       const maxDiff=Math.max(Math.abs(r-g),Math.abs(g-b),Math.abs(r-b));
       const isBlur=br>155&&maxDiff<45&&!(g>r+20&&g>b+10);
-      // Light cyan/teal tint on blur edges
       const isCyanHaze=g>r+3&&b>r+3&&Math.abs(g-b)<30&&br>100&&br<200&&r<185;
-      if(isTeal||isBlur||isCyanHaze){_d[i*4]=_bgR;_d[i*4+1]=_bgG;_d[i*4+2]=_bgB;}
+      // Remove dark dots, text labels (dark pixels that are NOT green vegetation)
+      const isGreen=g>r+15&&g>b+5&&g>100;
+      const isDarkDot=br<110&&!isGreen;
+      if(isTeal||isBlur||isCyanHaze||isDarkDot){_d[i*4]=_bgR;_d[i*4+1]=_bgG;_d[i*4+2]=_bgB;}
     }
     ctx.putImageData(_id,0,0);
   };
