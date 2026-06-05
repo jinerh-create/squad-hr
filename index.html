@@ -392,8 +392,8 @@ select.form-input option{background:var(--s2);}
       <div class="login-logo-icon">
         <svg viewBox="0 0 38 34"><circle cx="9" cy="9" r="5"/><path d="M1 31 C1 20 9 18 9 18 C9 18 17 20 17 31" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"/><circle cx="19" cy="7" r="6"/><path d="M7 32 C7 18 19 16 19 16 C19 16 31 18 31 32" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/><circle cx="29" cy="9" r="5"/><path d="M21 31 C21 20 29 18 29 18 C29 18 37 20 37 31" stroke="white" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
       </div>
-      <div class="login-brand">GYPSO MALDIVES</div>
-      <div class="login-brand-sub">People · Performance · Progress</div>
+      <div class="login-brand" data-company-name>SQUAD HR</div>
+      <div class="login-brand-sub" data-company-tagline>People · Performance · Progress</div>
     </div>
     <div class="login-h">Welcome back</div>
     <div class="login-desc">Sign in to your HR workspace</div>
@@ -1004,6 +1004,7 @@ function doLogin() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('sidebar').style.display = '';
     document.getElementById('header').style.display = '';
+  applyBranding();
     document.getElementById('main').style.display = '';
     const nm = user.name;
     const ini = nm.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -1761,6 +1762,60 @@ function getEmpPendingOT(empId, date) {
   return otRequests.some(r => r.empId === empId && r.date === date && r.status === 'pending');
 }
 
+
+// ===== WHITE-LABEL COMPANY BRANDING =====
+const DEFAULT_BRAND = {
+  name: 'SQUAD HR',
+  tagline: 'People · Performance · Progress',
+  primaryColor: '#7F8D74',
+  accentColor: '#5a6554',
+  logoData: null,
+  currency: 'MVR',
+  currencySymbol: 'MVR',
+  country: 'Maldives',
+  plan: 'starter', // starter, pro, enterprise
+};
+
+let companyBrand = (() => {
+  try { return { ...DEFAULT_BRAND, ...JSON.parse(localStorage.getItem('sq_company_brand') || '{}') }; }
+  catch { return { ...DEFAULT_BRAND }; }
+})();
+
+function saveCompanyBrand() {
+  localStorage.setItem('sq_company_brand', JSON.stringify(companyBrand));
+}
+
+function applyBranding() {
+  // Apply CSS colors
+  document.documentElement.style.setProperty('--a', companyBrand.primaryColor);
+  document.documentElement.style.setProperty('--a2', companyBrand.accentColor);
+  document.documentElement.style.setProperty('--yel', companyBrand.primaryColor);
+
+  // Apply company name everywhere
+  const nameEls = document.querySelectorAll('[data-company-name]');
+  nameEls.forEach(el => el.textContent = companyBrand.name);
+
+  const taglineEls = document.querySelectorAll('[data-company-tagline]');
+  taglineEls.forEach(el => el.textContent = companyBrand.tagline);
+
+  // Apply logo
+  const logoEls = document.querySelectorAll('[data-company-logo]');
+  logoEls.forEach(el => {
+    if (companyBrand.logoData) {
+      el.innerHTML = '<img src="' + companyBrand.logoData + '" style="height:36px;object-fit:contain;border-radius:6px">';
+    } else {
+      el.innerHTML = '<div style="width:36px;height:36px;background:var(--a);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff">' + (companyBrand.name||'S')[0] + '</div>';
+    }
+  });
+
+  // Update page title
+  document.title = companyBrand.name + ' — HR Management';
+
+  // Update sidebar logo text
+  const sidebarBrand = document.getElementById('sidebar-brand-name');
+  if (sidebarBrand) sidebarBrand.textContent = companyBrand.name;
+}
+
 function navigate(p) {
   page = p;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1842,6 +1897,7 @@ function render() {
     leave: renderLeave,
     payroll: renderPayroll,
     'ot-requests': renderOTRequests,
+    'company-settings': renderCompanySettings,
     'my-ot': renderMyOT,
     recruitment: renderRecruitment,
     performance: renderPerformance,
@@ -6221,6 +6277,210 @@ function exportOTExcel() {
   a.href = URL.createObjectURL(blob);
   a.download = 'OT_Report_' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
+}
+
+
+function renderCompanySettings() {
+  return `
+  <div class="section-hdr">
+    <div>
+      <div class="section-title">🏢 Company Setup</div>
+      <div class="section-sub">White-label branding — customise for your company</div>
+    </div>
+    <button class="btn btn-primary" onclick="saveCompanySettings()">💾 Save Changes</button>
+  </div>
+
+  <!-- Plan Badge -->
+  <div style="background:linear-gradient(135deg,${companyBrand.plan==='enterprise'?'#7C3AED,#6D28D9':companyBrand.plan==='pro'?'#059669,#047857':'#7F8D74,#5a6554'});border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase">Current Plan</div>
+      <div style="font-size:20px;font-weight:900;color:#fff;margin-top:2px">${companyBrand.plan?.toUpperCase() || 'STARTER'}</div>
+    </div>
+    <div style="font-size:28px">${companyBrand.plan==='enterprise'?'👑':companyBrand.plan==='pro'?'⭐':'🌱'}</div>
+  </div>
+
+  <div class="grid-2" style="gap:16px">
+    <!-- Company Identity -->
+    <div class="card" style="padding:20px">
+      <div class="card-title" style="margin-bottom:16px">🏢 Company Identity</div>
+
+      <div style="margin-bottom:12px">
+        <label class="form-label">Company Name *</label>
+        <input class="form-input" id="brand-name" value="${companyBrand.name}" placeholder="Your Company Name">
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label class="form-label">Tagline / Slogan</label>
+        <input class="form-input" id="brand-tagline" value="${companyBrand.tagline}" placeholder="People · Performance · Progress">
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label class="form-label">Country</label>
+        <select class="form-input" id="brand-country">
+          ${['Maldives','United Arab Emirates','Singapore','United Kingdom','United States','Australia','India','Sri Lanka','Other'].map(c=>`<option value="${c}" ${companyBrand.country===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label class="form-label">Currency</label>
+        <select class="form-input" id="brand-currency" onchange="updateCurrencySymbol(this.value)">
+          ${[['MVR','MVR — Maldivian Rufiyaa'],['USD','USD — US Dollar'],['AED','AED — UAE Dirham'],['GBP','GBP — British Pound'],['SGD','SGD — Singapore Dollar'],['LKR','LKR — Sri Lankan Rupee'],['INR','INR — Indian Rupee'],['AUD','AUD — Australian Dollar']].map(([v,l])=>`<option value="${v}" ${companyBrand.currency===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <!-- Branding & Colors -->
+    <div class="card" style="padding:20px">
+      <div class="card-title" style="margin-bottom:16px">🎨 Branding & Colors</div>
+
+      <!-- Logo upload -->
+      <div style="margin-bottom:16px">
+        <label class="form-label">Company Logo</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <div id="logo-preview-box" style="width:60px;height:60px;border-radius:12px;background:var(--s2);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:var(--a);overflow:hidden">
+            ${companyBrand.logoData ? '<img src="'+companyBrand.logoData+'" style="width:100%;height:100%;object-fit:contain">' : (companyBrand.name||'S')[0]}
+          </div>
+          <div>
+            <label class="btn btn-secondary" style="cursor:pointer;font-size:12px;padding:8px 14px">
+              📷 Upload Logo
+              <input type="file" accept="image/*" style="display:none" onchange="uploadCompanyLogo(event)">
+            </label>
+            ${companyBrand.logoData ? '<button class="btn btn-ghost" style="font-size:12px;padding:8px 14px;margin-top:6px" onclick="removeCompanyLogo()">Remove</button>' : ''}
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--t3)">Recommended: PNG with transparent background, 200×200px+</div>
+      </div>
+
+      <!-- Primary color -->
+      <div style="margin-bottom:12px">
+        <label class="form-label">Primary Color</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${['#7F8D74','#2563EB','#7C3AED','#DC2626','#059669','#D97706','#0891B2','#DB2777','#374151'].map(c=>`
+          <button onclick="setBrandColor('${c}')" style="width:28px;height:28px;border-radius:50%;background:${c};border:3px solid ${companyBrand.primaryColor===c?'var(--t)':'transparent'};cursor:pointer;transition:all .15s"></button>`).join('')}
+          <input type="color" id="brand-color-custom" value="${companyBrand.primaryColor}" onchange="setBrandColor(this.value)"
+            style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0;background:none">
+        </div>
+      </div>
+
+      <!-- Live preview -->
+      <div style="background:var(--s2);border:1px solid var(--b);border-radius:12px;padding:14px;margin-top:8px">
+        <div style="font-size:11px;color:var(--t3);font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">Live Preview</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div id="preview-logo" style="width:36px;height:36px;border-radius:8px;background:var(--a);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:16px">${(companyBrand.name||'S')[0]}</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--t)" id="preview-name">${companyBrand.name}</div>
+            <div style="font-size:10px;color:var(--a);font-weight:600" id="preview-tagline">${companyBrand.tagline}</div>
+          </div>
+        </div>
+        <button style="background:var(--a);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">Sample Button</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subscription Plans -->
+  <div class="card" style="padding:20px;margin-top:16px">
+    <div class="card-title" style="margin-bottom:4px">💼 Subscription Plans</div>
+    <div style="font-size:13px;color:var(--t3);margin-bottom:16px">Choose the right plan for your company size</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      ${[
+        {id:'starter',name:'Starter',price:'MVR 500',period:'/mo',emp:'Up to 25 employees',features:['All core HR features','Leave management','Payroll','Attendance'],color:'#7F8D74',icon:'🌱'},
+        {id:'pro',name:'Pro',price:'MVR 1,200',period:'/mo',emp:'Up to 100 employees',features:['Everything in Starter','OT Management','Performance Reviews','AI Assistant','Custom branding'],color:'#059669',icon:'⭐',popular:true},
+        {id:'enterprise',name:'Enterprise',price:'MVR 3,000',period:'/mo',emp:'Unlimited employees',features:['Everything in Pro','Multi-branch','API access','Dedicated support','Custom integrations'],color:'#7C3AED',icon:'👑'},
+      ].map(plan=>`
+      <div style="border:2px solid ${companyBrand.plan===plan.id?plan.color:'var(--b)'};border-radius:14px;padding:16px;text-align:center;position:relative;${plan.popular?'background:'+plan.color+'11':''}">
+        ${plan.popular?'<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:'+plan.color+';color:#fff;font-size:10px;font-weight:800;padding:2px 10px;border-radius:20px;white-space:nowrap">MOST POPULAR</div>':''}
+        <div style="font-size:24px;margin-bottom:6px">${plan.icon}</div>
+        <div style="font-size:14px;font-weight:800;color:${plan.color}">${plan.name}</div>
+        <div style="font-size:20px;font-weight:900;margin:6px 0">${plan.price}<span style="font-size:11px;font-weight:400;color:var(--t3)">${plan.period}</span></div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:10px">${plan.emp}</div>
+        <div style="text-align:left;margin-bottom:12px">${plan.features.map(f=>`<div style="font-size:11px;color:var(--t2);padding:3px 0">✓ ${f}</div>`).join('')}</div>
+        <button onclick="selectPlan('${plan.id}')" style="width:100%;padding:9px;background:${companyBrand.plan===plan.id?plan.color:'var(--s2)'};color:${companyBrand.plan===plan.id?'#fff':'var(--t)'};border:1px solid ${plan.color};border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+          ${companyBrand.plan===plan.id?'✓ Current Plan':'Select Plan'}
+        </button>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Data & Export -->
+  <div class="card" style="padding:20px;margin-top:16px">
+    <div class="card-title" style="margin-bottom:16px">🔒 Data & Privacy</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-secondary" onclick="exportFullBackup()" style="justify-content:flex-start;gap:10px">
+        📦 Export All Data
+      </button>
+      <button class="btn btn-secondary" onclick="navigate('sync')" style="justify-content:flex-start;gap:10px">
+        ☁️ Cloud Sync Settings
+      </button>
+      <button class="btn btn-ghost" onclick="resetToDefaults()" style="justify-content:flex-start;gap:10px;color:var(--red)">
+        ⚠️ Reset to Defaults
+      </button>
+      <button class="btn btn-ghost" onclick="window.open('mailto:support@squadhr.app')" style="justify-content:flex-start;gap:10px">
+        💬 Contact Support
+      </button>
+    </div>
+  </div>
+  `;
+}
+
+function saveCompanySettings() {
+  companyBrand.name = document.getElementById('brand-name')?.value?.trim() || companyBrand.name;
+  companyBrand.tagline = document.getElementById('brand-tagline')?.value?.trim() || companyBrand.tagline;
+  companyBrand.country = document.getElementById('brand-country')?.value || companyBrand.country;
+  companyBrand.currency = document.getElementById('brand-currency')?.value || companyBrand.currency;
+  saveCompanyBrand();
+  applyBranding();
+  toast('✅ Company settings saved!', 3000);
+}
+
+function setBrandColor(color) {
+  companyBrand.primaryColor = color;
+  document.documentElement.style.setProperty('--a', color);
+  const prev = document.getElementById('preview-name');
+  const prevTag = document.getElementById('preview-tagline');
+  if (prevTag) prevTag.style.color = color;
+  // Update button borders
+  document.querySelectorAll('[onclick*="setBrandColor"]').forEach(b => {
+    if(b.style.background === color) b.style.borderColor = 'var(--t)';
+    else if(b.tagName==='BUTTON') b.style.borderColor = 'transparent';
+  });
+}
+
+function uploadCompanyLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    companyBrand.logoData = ev.target.result;
+    const box = document.getElementById('logo-preview-box');
+    if (box) box.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:contain">';
+    const prev = document.getElementById('preview-logo');
+    if (prev) prev.innerHTML = '<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:contain;border-radius:6px">';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCompanyLogo() {
+  companyBrand.logoData = null;
+  navigate('company-settings');
+}
+
+function updateCurrencySymbol(val) {
+  companyBrand.currency = val;
+}
+
+function selectPlan(planId) {
+  companyBrand.plan = planId;
+  saveCompanyBrand();
+  navigate('company-settings');
+  toast('Plan updated to ' + planId.toUpperCase() + '!', 3000);
+}
+
+function resetToDefaults() {
+  if (!confirm('Reset all branding to defaults? This cannot be undone.')) return;
+  Object.assign(companyBrand, DEFAULT_BRAND);
+  saveCompanyBrand();
+  applyBranding();
+  navigate('company-settings');
 }
 
 function renderPayroll() {

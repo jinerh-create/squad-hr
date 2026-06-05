@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Squad HR — Modern HR Management for Every Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#5a7a52;--green-light:#7F8D74;--green-dim:rgba(127,141,116,0.1);--dark:#1a2318;--text:#2d3a2a;--t2:#5a6a56;--t3:#8a9a86;--bg:#f8faf7;--white:#ffffff;--border:rgba(90,122,82,0.15);--radius:14px}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(248,250,247,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 5vw;display:flex;align-items:center;height:64px;gap:32px}
+.nav-logo{font-size:18px;font-weight:900;color:var(--dark);letter-spacing:-.3px}
+.nav-logo span{color:var(--green)}
+.nav-links{display:flex;gap:24px;margin-left:auto}
+.nav-links a{font-size:14px;font-weight:500;color:var(--t2);transition:color .15s}
+.nav-links a:hover{color:var(--green)}
+.nav-cta{background:var(--green);color:#fff;padding:9px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .15s}
+.nav-cta:hover{background:var(--dark);transform:translateY(-1px)}
+/* HERO */
+.hero{padding:140px 5vw 80px;text-align:center;max-width:900px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-dim);color:var(--green);border:1px solid rgba(90,122,82,0.25);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;letter-spacing:-.03em;margin-bottom:20px;color:var(--dark)}
+.hero h1 span{color:var(--green)}
+.hero p{font-size:clamp(1rem,2vw,1.25rem);color:var(--t2);max-width:600px;margin:0 auto 36px;font-weight:400}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--green);color:#fff;padding:14px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;border:none;transition:all .2s;box-shadow:0 4px 14px rgba(90,122,82,0.3)}
+.btn-primary:hover{background:var(--dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(90,122,82,0.4)}
+.btn-secondary{background:#fff;color:var(--dark);padding:14px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);transition:all .2s}
+.btn-secondary:hover{border-color:var(--green);color:var(--green)}
+/* LOGOS */
+.trusted{padding:40px 5vw;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#fff}
+.trusted p{font-size:12px;font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px}
+.trusted-logos{display:flex;gap:32px;justify-content:center;align-items:center;flex-wrap:wrap}
+.trusted-logos span{font-size:14px;font-weight:700;color:var(--t3);opacity:.6}
+/* FEATURES */
+section{padding:80px 5vw;max-width:1200px;margin:0 auto}
+.section-label{font-size:11px;font-weight:700;color:var(--green);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+.section-title{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:800;color:var(--dark);letter-spacing:-.02em;margin-bottom:14px}
+.section-sub{font-size:1.0625rem;color:var(--t2);max-width:520px}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-top:48px}
+.feature-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:24px;transition:all .2s}
+.feature-card:hover{border-color:rgba(90,122,82,0.35);box-shadow:0 8px 32px rgba(90,122,82,0.08);transform:translateY(-2px)}
+.feature-icon{width:48px;height:48px;border-radius:12px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px}
+.feature-card h3{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:6px}
+.feature-card p{font-size:14px;color:var(--t2);line-height:1.6}
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:48px}
+.pricing-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:28px;position:relative;transition:all .2s}
+.pricing-card.popular{border-color:var(--green);box-shadow:0 8px 32px rgba(90,122,82,0.12)}
+.popular-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:3px 12px;border-radius:20px;letter-spacing:.08em;white-space:nowrap}
+.pricing-card h3{font-size:18px;font-weight:800;color:var(--dark);margin-bottom:4px}
+.pricing-card .price{font-size:2.5rem;font-weight:900;color:var(--dark);letter-spacing:-.03em;margin:12px 0 4px}
+.pricing-card .price span{font-size:1rem;font-weight:400;color:var(--t3)}
+.pricing-card .emp{font-size:13px;color:var(--t2);margin-bottom:20px}
+.pricing-features{list-style:none;margin-bottom:24px}
+.pricing-features li{font-size:14px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.pricing-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+.pricing-btn{width:100%;padding:12px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--dark);transition:all .2s}
+.pricing-btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.pricing-btn:hover{background:var(--dark);color:#fff;border-color:var(--dark)}
+/* HOW IT WORKS */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:48px}
+.step{text-align:center;padding:24px}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;font-size:18px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step h3{font-size:16px;font-weight:700;color:var(--dark);margin-bottom:6px}
+.step p{font-size:14px;color:var(--t2)}
+/* TESTIMONIALS */
+.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:48px}
+.testimonial{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.testimonial-text{font-size:15px;color:var(--text);line-height:1.7;margin-bottom:16px;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:10px}
+.testimonial-avatar{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.testimonial-name{font-size:14px;font-weight:700;color:var(--dark)}
+.testimonial-role{font-size:12px;color:var(--t3)}
+/* CTA */
+.cta-section{background:var(--dark);color:#fff;padding:80px 5vw;text-align:center}
+.cta-section h2{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:900;margin-bottom:14px;letter-spacing:-.02em}
+.cta-section p{font-size:1.0625rem;color:rgba(255,255,255,.65);max-width:480px;margin:0 auto 32px}
+/* FOOTER */
+footer{background:#fff;border-top:1px solid var(--border);padding:40px 5vw;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.footer-logo{font-size:16px;font-weight:900;color:var(--dark)}
+.footer-logo span{color:var(--green)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:13px;color:var(--t3);transition:color .15s}
+.footer-links a:hover{color:var(--green)}
+.footer-copy{font-size:12px;color:var(--t3)}
+@media(max-width:640px){
+  .nav-links{display:none}
+  .hero{padding:100px 5vw 60px}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Squad<span>HR</span></div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#how">How it works</a>
+    <a href="mailto:hello@squadhr.app">Contact</a>
+  </div>
+  <button class="nav-cta" onclick="window.open('index.html')">Try Free →</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🌿 Built for Growing Teams</div>
+  <h1>Modern HR for <span>Every Company</span></h1>
+  <p>Complete HR management — employees, payroll, leave, attendance, OT, performance — all in one place. White-label it for your company in minutes.</p>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="window.open('index.html')">🚀 Start Free Trial</button>
+    <button class="btn-secondary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">View Pricing</button>
+  </div>
+</div>
+
+<!-- TRUSTED BY -->
+<div class="trusted">
+  <p>Trusted by companies across the Maldives & beyond</p>
+  <div class="trusted-logos">
+    <span>🏨 Resort Companies</span>
+    <span>🏗️ Construction Firms</span>
+    <span>🏥 Clinics & Hospitals</span>
+    <span>🛒 Retail Chains</span>
+    <span>🚢 Marine Companies</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">Features</div>
+  <div class="section-title">Everything your HR team needs</div>
+  <div class="section-sub">From hire to retire — manage your entire workforce with one powerful platform.</div>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">👥</div><h3>Employee Management</h3><p>Full employee profiles, documents, contracts, probation tracking, and org chart.</p></div>
+    <div class="feature-card"><div class="feature-icon">📅</div><h3>Attendance & Shifts</h3><p>Clock-in/out, duty roster, shift scheduling, and real-time attendance tracking.</p></div>
+    <div class="feature-card"><div class="feature-icon">🏖️</div><h3>Leave Management</h3><p>Leave requests, approvals, balance tracking, and holiday calendar.</p></div>
+    <div class="feature-card"><div class="feature-icon">💰</div><h3>Payroll</h3><p>Automated salary calculation, allowances, deductions, and payslip generation.</p></div>
+    <div class="feature-card"><div class="feature-icon">⏱️</div><h3>OT Management</h3><p>Overtime requests, approval workflow, WhatsApp notifications, and payroll integration.</p></div>
+    <div class="feature-card"><div class="feature-icon">📊</div><h3>Performance Reviews</h3><p>KPI tracking, performance ratings, and annual review management.</p></div>
+    <div class="feature-card"><div class="feature-icon">📋</div><h3>Recruitment</h3><p>Job postings, applicant tracking, interview management, and hiring pipeline.</p></div>
+    <div class="feature-card"><div class="feature-icon">💳</div><h3>Expenses & Loans</h3><p>Expense claims, advance requests, loan tracking with automatic deductions.</p></div>
+    <div class="feature-card"><div class="feature-icon">🏢</div><h3>White-Label</h3><p>Your company name, logo, and colors. Looks like YOUR system, not ours.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background:#fff;max-width:100%;padding:80px 5vw">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">Up and running in 10 minutes</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Sign Up</h3><p>Create your account and set up your company profile with logo and colors.</p></div>
+      <div class="step"><div class="step-num">2</div><h3>Add Employees</h3><p>Import your team or add them one by one with their details and documents.</p></div>
+      <div class="step"><div class="step-num">3</div><h3>Configure HR</h3><p>Set up payroll, leave policies, shifts, and approval workflows.</p></div>
+      <div class="step"><div class="step-num">4</div><h3>Go Live</h3><p>Share the app link with your team. They can access on any device, anytime.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-label">Pricing</div>
+  <div class="section-title">Simple, transparent pricing</div>
+  <div class="section-sub">No hidden fees. Cancel anytime. All plans include free setup and training.</div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h3>🌱 Starter</h3>
+      <div class="pricing-card .emp" style="font-size:13px;color:var(--t2);margin-top:4px">Up to 25 employees</div>
+      <div class="price">MVR 500<span>/month</span></div>
+      <ul class="pricing-features">
+        <li>Employee management</li>
+        <li>Attendance tracking</li>
+        <li>Leave management</li>
+        <li>Basic payroll</li>
+        <li>Mobile access</li>
+        <li>Email support</li>
+      </ul>
+      <button class="pricing-btn" onclick="window.open('index.html')">Get Started</button>
+    </div>
+    <div class="pricing-card popular">
+      <div class="popular-badge">MOST POPULAR</div>
+      <h3>⭐ Pro</h3>
+      <div style="font-size:13px;color:var(--t2);margin-top:4px">Up to 100 employees</div>
+      <div class="price">MVR 1,200<span>/month</span></div>
+      <ul class="pricing-features">
+        <li>Everything in Starter</li>
+        <li>OT Management</li>
+        <li>Performance reviews</li>
+        <li>Recruitment module</li>
+        <li>AI HR Assistant</li>
+        <li>WhatsApp notifications</li>
+        <li>Custom branding</li>
+        <li>Priority support</li>
+      </ul>
+      <button class="pricing-btn primary" onclick="window.open('index.html')">Start Pro Trial</button>
+    </div>
+    <div class="pricing-card">
+      <h3>👑 Enterprise</h3>
+      <div style="font-size:13px;color:var(--t2);margin-top:4px">Unlimited employees</div>
+      <div class="price">MVR 3,000<span>/month</span></div>
+      <ul class="pricing-features">
+        <li>Everything in Pro</li>
+        <li>Multi-branch support</li>
+        <li>API access</li>
+        <li>Custom integrations</li>
+        <li>Dedicated support</li>
+        <li>On-site training</li>
+        <li>SLA guarantee</li>
+      </ul>
+      <button class="pricing-btn" onclick="window.open('mailto:hello@squadhr.app')">Contact Sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section style="background:#fff;max-width:100%;padding:80px 5vw">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-label">Testimonials</div>
+    <div class="section-title">Loved by HR teams</div>
+    <div class="testimonials">
+      <div class="testimonial">
+        <div class="testimonial-text">"Squad HR saved us hours every month. Payroll that used to take 2 days now takes 30 minutes. The OT tracking alone is worth the price."</div>
+        <div class="testimonial-author"><div class="testimonial-avatar">A</div><div><div class="testimonial-name">Ahmed R.</div><div class="testimonial-role">HR Manager, Resort Company</div></div></div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-text">"We white-labeled it for our construction company. Our workers love checking their payslips and applying for leave from their phones."</div>
+        <div class="testimonial-author"><div class="testimonial-avatar">F</div><div><div class="testimonial-name">Fathimath M.</div><div class="testimonial-role">Operations Director</div></div></div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-text">"The attendance tracking with the duty roster is excellent. We manage 80 staff across 3 locations with no confusion anymore."</div>
+        <div class="testimonial-author"><div class="testimonial-avatar">I</div><div><div class="testimonial-name">Ibrahim K.</div><div class="testimonial-role">CEO, Trading Company</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Ready to modernise your HR?</h2>
+  <p>Start your free 30-day trial. No credit card required. Setup in 10 minutes.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <button class="btn-primary" onclick="window.open('index.html')" style="font-size:16px;padding:14px 32px">🚀 Start Free Trial</button>
+    <button style="background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4);padding:14px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer" onclick="window.open('mailto:hello@squadhr.app')">💬 Talk to Sales</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Squad<span>HR</span></div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="mailto:hello@squadhr.app">Contact</a>
+    <a href="#">Privacy Policy</a>
+  </div>
+  <div class="footer-copy">© 2026 Squad HR. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
