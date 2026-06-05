@@ -1075,6 +1075,7 @@ function updateNavForRole() {
       <div class="sb-section">My Space</div>
       <button class="nav-item active" onclick="navigate('my-profile')">${empNavSVGs.profile}<span>My Profile</span></button>
       <button class="nav-item" onclick="navigate('my-attendance')">${empNavSVGs.attend}<span>My Attendance</span></button>
+      <button class="nav-item" onclick="navigate('my-ot')">⏱️ <span>My OT</span></button>
       <button class="nav-item" onclick="navigate('my-leave')">${empNavSVGs.leave}<span>My Leave</span></button>
       <button class="nav-item" onclick="navigate('my-payslips')">${empNavSVGs.pay}<span>My Payslips</span></button>
       <button class="nav-item" onclick="navigate('duty-roster')">${empNavSVGs.roster}<span>My Duty Roster</span></button>
@@ -1780,7 +1781,7 @@ function navigate(p) {
     'duty-roster':'Duty Roster', leave:'Leave Management', payroll:'Payroll', recruitment:'Recruitment',
     performance:'Performance Reviews', announcements:'Announcements', settings:'Settings',
     'my-profile':'My Profile', 'my-attendance':'My Attendance',
-    'my-leave':'My Leave', 'my-payslips':'My Payslips',
+    'my-leave':'My Leave', 'my-payslips':'My Payslips', 'my-ot':'My OT Requests', 'ot-requests':'OT Requests',
     'employee-profile':'Employee Profile',
     'maldives-permits':'Document Expiry',
     'doc-expiry':'Document Expiry',
@@ -5986,8 +5987,9 @@ function renderOTRequests() {
 
 // ── Employee OT submission form ──
 function renderMyOT() {
-  const myOT = otRequests.filter(r => r.empId === currentEmployee?.id);
-  const monthOT = getEmpOTThisMonth(currentEmployee?.id);
+  const myEmp = employees.find(e => e.id === currentUser?.empId) || {};
+  const myOT = otRequests.filter(r => r.empId === currentUser?.empId);
+  const monthOT = getEmpOTThisMonth(currentUser?.empId);
   const remaining = Math.max(0, OT_MONTHLY_LIMIT - monthOT);
 
   return `
@@ -6133,7 +6135,7 @@ function submitOTRequest() {
   }
 
   // Check duplicate
-  if (getEmpPendingOT(currentEmployee?.id, date)) {
+  if (getEmpPendingOT(currentUser?.empId, date)) {
     alert('You already have a pending OT request for this date.');
     return;
   }
@@ -6145,7 +6147,7 @@ function submitOTRequest() {
   if (mins < 0) mins += 24*60;
   const otHours = parseFloat((mins/60).toFixed(1));
 
-  const monthUsed = getEmpOTThisMonth(currentEmployee?.id);
+  const monthUsed = getEmpOTThisMonth(currentUser?.empId);
   if (monthUsed + otHours > OT_MONTHLY_LIMIT) {
     alert(`Monthly OT limit is ${OT_MONTHLY_LIMIT} hours. You have used ${monthUsed}h. This request exceeds the limit.`);
     return;
@@ -6155,8 +6157,8 @@ function submitOTRequest() {
 
   const req = {
     id: 'OT' + Date.now(),
-    empId: currentEmployee?.id,
-    empName: currentEmployee?.name,
+    empId: currentUser?.empId,
+    empName: (employees.find(e=>e.id===currentUser?.empId)?.name||currentUser?.name||"Unknown"),
     dept, shift, date, startTime: start, endTime: end,
     otHours, reason, workDone: work, proof,
     status: 'pending',
