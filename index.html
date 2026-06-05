@@ -616,6 +616,7 @@ select.form-input option{background:var(--s2);}
       <svg id="nav-fin-arrow" class="nav-folder-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <div id="nav-fin-children" class="nav-folder-children" style="display:none">
+      <button class="nav-item nav-child" onclick="navigate('ot-requests')">⏱️ OT Requests</button>
       <button class="nav-item nav-child" onclick="navigate('payroll')">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         <span>Payroll</span>
@@ -1738,6 +1739,27 @@ function openFolder(id) {
 function toggleNavFolder() { toggleFolder('emp'); }
 function openEmpFolder()   { openFolder('emp'); }
 
+
+// ===== OT REQUESTS DATA =====
+let otRequests = JSON.parse(localStorage.getItem('sq_ot_requests') || '[]');
+const OT_MONTHLY_LIMIT = 40; // Max OT hours per month per employee
+
+function saveOT() {
+  localStorage.setItem('sq_ot_requests', JSON.stringify(otRequests));
+}
+
+function getEmpOTThisMonth(empId) {
+  const now = new Date();
+  const month = now.getMonth(), year = now.getFullYear();
+  return otRequests
+    .filter(r => r.empId === empId && r.status === 'approved' && new Date(r.date).getMonth() === month && new Date(r.date).getFullYear() === year)
+    .reduce((s, r) => s + (r.otHours || 0), 0);
+}
+
+function getEmpPendingOT(empId, date) {
+  return otRequests.some(r => r.empId === empId && r.date === date && r.status === 'pending');
+}
+
 function navigate(p) {
   page = p;
   document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1818,6 +1840,8 @@ function render() {
     'duty-roster': renderDutyRoster,
     leave: renderLeave,
     payroll: renderPayroll,
+    'ot-requests': renderOTRequests,
+    'my-ot': renderMyOT,
     recruitment: renderRecruitment,
     performance: renderPerformance,
     announcements: renderAnnouncements,
@@ -5854,8 +5878,362 @@ function addCompanyHoliday() {
 }
 
 // ==================== PAYROLL ====================
+
+// ============================================================
+// OT REQUEST RENDER FUNCTIONS
+// ============================================================
+
+function renderOTRequests() {
+  const pending = otRequests.filter(r => r.status === 'pending');
+  const approved = otRequests.filter(r => r.status === 'approved');
+  const rejected = otRequests.filter(r => r.status === 'rejected');
+
+  const badge = (text, color) => `<span style="display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${color}22;color:${color}">${text}</span>`;
+
+  const requestCard = (r) => {
+    const emp = employees.find(e => e.id === r.empId) || {};
+    const hourlyRate = ((emp.salary || 0) / 22 / 8);
+    const otAmount = (r.otHours * hourlyRate * 1.5).toFixed(2);
+    return `
+    <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#6366F1);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0">${(emp.name||'?')[0]}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">${emp.name || 'Unknown'}</div>
+            <div style="font-size:12px;color:var(--t3)">${emp.dept || ''} · ${r.shift || ''}</div>
+          </div>
+        </div>
+        ${r.status==='pending' ? badge('⏳ Pending','#F59E0B') : r.status==='approved' ? badge('✓ Approved','#10B981') : badge('✕ Rejected','#EF4444')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--t3);font-weight:700">DATE</div>
+          <div style="font-size:13px;font-weight:700;margin-top:2px">${r.date}</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--t3);font-weight:700">OT HOURS</div>
+          <div style="font-size:16px;font-weight:900;color:#8B5CF6;margin-top:2px">${r.otHours}h</div>
+        </div>
+        <div style="background:var(--s2);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--t3);font-weight:700">OT AMOUNT</div>
+          <div style="font-size:13px;font-weight:700;color:#10B981;margin-top:2px">MVR ${otAmount}</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:6px"><span style="color:var(--t3);font-weight:700">Time:</span> ${r.startTime} – ${r.endTime}</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:6px"><span style="color:var(--t3);font-weight:700">Reason:</span> ${r.reason}</div>
+      <div style="font-size:12px;color:var(--t2);margin-bottom:8px"><span style="color:var(--t3);font-weight:700">Work Done:</span> ${r.workDone}</div>
+      ${r.proof ? `<div style="margin-bottom:10px"><img src="${r.proof}" style="max-height:120px;border-radius:8px;object-fit:cover;border:1px solid var(--b)"></div>` : ''}
+      ${r.rejectReason ? `<div style="font-size:12px;color:#EF4444;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:8px;margin-bottom:8px"><span style="font-weight:700">Rejection Reason:</span> ${r.rejectReason}</div>` : ''}
+      ${r.status === 'pending' ? `
+      <div style="display:flex;gap:8px">
+        <button onclick="approveOT('${r.id}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#059669,#10B981);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✓ Approve</button>
+        <button onclick="openRejectOT('${r.id}')" style="flex:1;padding:10px;background:rgba(239,68,68,0.12);color:#EF4444;border:1px solid rgba(239,68,68,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✕ Reject</button>
+        <a href="https://wa.me/?text=${encodeURIComponent('OT Request from ' + (emp.name||'') + ' for ' + r.date + ' — ' + r.otHours + ' hours. Reason: ' + r.reason)}" target="_blank" style="padding:10px 14px;background:rgba(37,211,102,0.12);color:#25D366;border:1px solid rgba(37,211,102,0.3);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;text-decoration:none">💬</a>
+      </div>` : ''}
+    </div>`;
+  };
+
+  return `
+  <div class="section-hdr">
+    <div><div class="section-title">⏱️ OT Requests</div><div class="section-sub">${pending.length} pending · ${approved.length} approved this month</div></div>
+    <button class="btn btn-primary" onclick="exportOTExcel()">📥 Export Excel</button>
+  </div>
+
+  <!-- Summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+    <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px;text-align:center">
+      <div style="font-size:24px;margin-bottom:4px">⏳</div>
+      <div style="font-size:24px;font-weight:900;color:#F59E0B">${pending.length}</div>
+      <div style="font-size:11px;color:var(--t3);font-weight:700">PENDING</div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px;text-align:center">
+      <div style="font-size:24px;margin-bottom:4px">✅</div>
+      <div style="font-size:24px;font-weight:900;color:#10B981">${approved.length}</div>
+      <div style="font-size:11px;color:var(--t3);font-weight:700">APPROVED</div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px;text-align:center">
+      <div style="font-size:24px;margin-bottom:4px">❌</div>
+      <div style="font-size:24px;font-weight:900;color:#EF4444">${rejected.length}</div>
+      <div style="font-size:11px;color:var(--t3);font-weight:700">REJECTED</div>
+    </div>
+  </div>
+
+  <!-- Pending first -->
+  ${pending.length ? `<div style="font-size:11px;font-weight:700;color:#F59E0B;letter-spacing:.1em;margin-bottom:8px;text-transform:uppercase">⏳ Pending Approval</div>${pending.map(requestCard).join('')}` : ''}
+
+  <!-- Approved -->
+  ${approved.length ? `<div style="font-size:11px;font-weight:700;color:#10B981;letter-spacing:.1em;margin:16px 0 8px;text-transform:uppercase">✅ Approved</div>${approved.map(requestCard).join('')}` : ''}
+
+  <!-- Rejected -->
+  ${rejected.length ? `<div style="font-size:11px;font-weight:700;color:#EF4444;letter-spacing:.1em;margin:16px 0 8px;text-transform:uppercase">❌ Rejected</div>${rejected.map(requestCard).join('')}` : ''}
+
+  ${otRequests.length === 0 ? '<div style="text-align:center;padding:48px;color:var(--t3)"><div style="font-size:40px;margin-bottom:12px">⏱️</div><div style="font-size:16px;font-weight:700">No OT Requests Yet</div><div style="font-size:13px;margin-top:4px">Employees can submit OT requests from their portal</div></div>' : ''}
+
+  <!-- Reject modal -->
+  <div id="reject-ot-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--s1);border:1px solid var(--b);border-radius:20px;padding:24px;width:100%;max-width:400px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:16px">Rejection Reason</div>
+      <textarea id="reject-reason-input" rows="3" placeholder="Enter reason for rejection..." style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:10px;padding:12px;color:var(--t);font-size:13px;resize:none;outline:none"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="document.getElementById('reject-ot-modal').style.display='none'" style="flex:1;padding:10px;background:var(--s2);color:var(--t3);border:1px solid var(--b);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+        <button onclick="confirmRejectOT()" style="flex:1;padding:10px;background:#EF4444;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Reject</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+// ── Employee OT submission form ──
+function renderMyOT() {
+  const myOT = otRequests.filter(r => r.empId === currentEmployee?.id);
+  const monthOT = getEmpOTThisMonth(currentEmployee?.id);
+  const remaining = Math.max(0, OT_MONTHLY_LIMIT - monthOT);
+
+  return `
+  <div class="section-hdr">
+    <div><div class="section-title">⏱️ My OT Requests</div><div class="section-sub">Monthly limit: ${OT_MONTHLY_LIMIT}h · Used: ${monthOT}h · Remaining: ${remaining}h</div></div>
+  </div>
+
+  <!-- Monthly progress bar -->
+  <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:16px;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;font-weight:700;color:var(--t3)">MONTHLY OT USAGE</span>
+      <span style="font-size:14px;font-weight:900;color:#8B5CF6">${monthOT}h / ${OT_MONTHLY_LIMIT}h</span>
+    </div>
+    <div style="height:8px;background:var(--s2);border-radius:4px;overflow:hidden">
+      <div style="height:100%;width:${Math.min(monthOT/OT_MONTHLY_LIMIT*100,100)}%;background:${monthOT>=OT_MONTHLY_LIMIT?'#EF4444':'linear-gradient(90deg,#8B5CF6,#6366F1)'};border-radius:4px;transition:width .5s"></div>
+    </div>
+  </div>
+
+  <!-- Submit OT form -->
+  <div style="background:var(--s1);border:1px solid var(--b);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-size:14px;font-weight:800;margin-bottom:16px">📋 Submit New OT Request</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">OT DATE *</label>
+        <input type="date" id="ot-date" style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none" value="${new Date().toISOString().split('T')[0]}" onchange="calcOTHours()">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">DEPARTMENT *</label>
+        <select id="ot-dept" style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none">
+          <option value="">Select Department</option>
+          ${[...new Set(employees.map(e=>e.dept).filter(Boolean))].map(d=>`<option>${d}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">START TIME *</label>
+        <input type="time" id="ot-start" style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none" onchange="calcOTHours()">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">END TIME *</label>
+        <input type="time" id="ot-end" style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none" onchange="calcOTHours()">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">OT HOURS</label>
+        <div id="ot-hours-display" style="background:linear-gradient(135deg,#8B5CF622,#6366F122);border:1px solid #8B5CF644;border-radius:8px;padding:10px;font-size:18px;font-weight:900;color:#8B5CF6;text-align:center">—</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">SHIFT / WORK TYPE</label>
+      <select id="ot-shift" style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none">
+        <option value="Regular OT">Regular OT</option>
+        <option value="Weekend OT">Weekend OT</option>
+        <option value="Holiday OT">Holiday OT</option>
+        <option value="Night Shift OT">Night Shift OT</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">REASON FOR OT *</label>
+      <input type="text" id="ot-reason" placeholder="e.g. Project deadline, urgent order..." style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">WORK DONE *</label>
+      <textarea id="ot-work" rows="3" placeholder="Describe the work completed during overtime..." style="width:100%;background:var(--s2);border:1px solid var(--b);border-radius:8px;padding:10px;color:var(--t);font-size:13px;outline:none;resize:none"></textarea>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="font-size:11px;font-weight:700;color:var(--t3);display:block;margin-bottom:4px">PROOF / PHOTO (Optional)</label>
+      <label style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px dashed var(--b);border-radius:8px;padding:12px;cursor:pointer">
+        <span style="font-size:20px">📷</span>
+        <span style="font-size:12px;color:var(--t3)">Tap to upload photo proof</span>
+        <input type="file" accept="image/*" id="ot-proof" style="display:none" onchange="previewOTProof(event)">
+      </label>
+      <div id="ot-proof-preview" style="display:none;margin-top:8px"></div>
+    </div>
+
+    <button onclick="submitOTRequest()" style="width:100%;padding:14px;background:linear-gradient(135deg,#7C3AED,#8B5CF6,#6366F1);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,0.4)">
+      ⏱️ Submit OT Request
+    </button>
+  </div>
+
+  <!-- My OT History -->
+  ${myOT.length ? `
+  <div style="font-size:12px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">📋 My OT History</div>
+  ${myOT.slice().reverse().map(r => `
+  <div style="background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:700">${r.date} · ${r.otHours}h OT</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px">${r.startTime}–${r.endTime} · ${r.reason}</div>
+    </div>
+    <span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${r.status==='approved'?'#10B98122':r.status==='rejected'?'#EF444422':'#F59E0B22'};color:${r.status==='approved'?'#10B981':r.status==='rejected'?'#EF4444':'#F59E0B'}">${r.status.toUpperCase()}</span>
+  </div>`).join('')}
+  ` : ''}
+  `;
+}
+
+// ── OT helper functions ──
+function calcOTHours() {
+  const start = document.getElementById('ot-start')?.value;
+  const end = document.getElementById('ot-end')?.value;
+  const display = document.getElementById('ot-hours-display');
+  if (!start || !end || !display) return;
+  const [sh,sm] = start.split(':').map(Number);
+  const [eh,em] = end.split(':').map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if (mins < 0) mins += 24*60;
+  const hours = (mins/60).toFixed(1);
+  display.textContent = hours + 'h';
+}
+
+function previewOTProof(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const prev = document.getElementById('ot-proof-preview');
+    if (prev) {
+      prev.style.display = 'block';
+      prev.innerHTML = `<img src="${ev.target.result}" style="max-height:120px;border-radius:8px;object-fit:cover;border:1px solid var(--b)">`;
+      prev.dataset.src = ev.target.result;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitOTRequest() {
+  const date = document.getElementById('ot-date')?.value;
+  const start = document.getElementById('ot-start')?.value;
+  const end = document.getElementById('ot-end')?.value;
+  const reason = document.getElementById('ot-reason')?.value?.trim();
+  const work = document.getElementById('ot-work')?.value?.trim();
+  const dept = document.getElementById('ot-dept')?.value;
+  const shift = document.getElementById('ot-shift')?.value;
+
+  if (!date || !start || !end || !reason || !work) {
+    alert('Please fill all required fields (Date, Start/End Time, Reason, Work Done)');
+    return;
+  }
+
+  // Check duplicate
+  if (getEmpPendingOT(currentEmployee?.id, date)) {
+    alert('You already have a pending OT request for this date.');
+    return;
+  }
+
+  // Check monthly limit
+  const [sh,sm] = start.split(':').map(Number);
+  const [eh,em] = end.split(':').map(Number);
+  let mins = (eh*60+em) - (sh*60+sm);
+  if (mins < 0) mins += 24*60;
+  const otHours = parseFloat((mins/60).toFixed(1));
+
+  const monthUsed = getEmpOTThisMonth(currentEmployee?.id);
+  if (monthUsed + otHours > OT_MONTHLY_LIMIT) {
+    alert(`Monthly OT limit is ${OT_MONTHLY_LIMIT} hours. You have used ${monthUsed}h. This request exceeds the limit.`);
+    return;
+  }
+
+  const proof = document.getElementById('ot-proof-preview')?.dataset?.src || null;
+
+  const req = {
+    id: 'OT' + Date.now(),
+    empId: currentEmployee?.id,
+    empName: currentEmployee?.name,
+    dept, shift, date, startTime: start, endTime: end,
+    otHours, reason, workDone: work, proof,
+    status: 'pending',
+    submittedAt: new Date().toISOString()
+  };
+
+  otRequests.unshift(req);
+  saveOT();
+  alert('✅ OT Request submitted successfully! Awaiting HR approval.');
+  navigate('my-ot');
+}
+
+let _rejectOTId = null;
+function openRejectOT(id) {
+  _rejectOTId = id;
+  const modal = document.getElementById('reject-ot-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function confirmRejectOT() {
+  const reason = document.getElementById('reject-reason-input')?.value?.trim();
+  if (!reason) { alert('Please enter a rejection reason'); return; }
+  const req = otRequests.find(r => r.id === _rejectOTId);
+  if (!req) return;
+  req.status = 'rejected';
+  req.rejectReason = reason;
+  req.rejectedAt = new Date().toISOString();
+  saveOT();
+  // WhatsApp notification
+  const msg = encodeURIComponent(`Dear ${req.empName}, your overtime request for ${req.date} has been REJECTED. Reason: ${reason}`);
+  if (confirm('Send WhatsApp rejection message to employee?')) {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+  document.getElementById('reject-ot-modal').style.display = 'none';
+  navigate('ot-requests');
+}
+
+function approveOT(id) {
+  const req = otRequests.find(r => r.id === id);
+  if (!req) return;
+  req.status = 'approved';
+  req.approvedAt = new Date().toISOString();
+  saveOT();
+  // WhatsApp notification
+  const msg = encodeURIComponent(`Dear ${req.empName}, your overtime request for ${req.date} has been APPROVED. Total OT: ${req.otHours} hours. This will be added to your salary.`);
+  if (confirm('Send WhatsApp approval message to employee?')) {
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+  navigate('ot-requests');
+}
+
+function exportOTExcel() {
+  const rows = [['Employee','Department','Date','Start','End','OT Hours','Reason','Status','Approved At']];
+  otRequests.forEach(r => {
+    rows.push([r.empName||'',r.dept||'',r.date,r.startTime,r.endTime,r.otHours,r.reason,r.status,r.approvedAt||'']);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'OT_Report_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+}
+
 function renderPayroll() {
   const totalNet = payroll.reduce((s,p)=>s+p.net,0);
+  const totalOTAmount = (() => {
+    const now = new Date();
+    return otRequests
+      .filter(r => r.status === 'approved' && new Date(r.date).getMonth() === now.getMonth())
+      .reduce((s, r) => {
+        const emp = employees.find(e => e.id === r.empId);
+        if (!emp) return s;
+        const hourlyRate = ((emp.salary || 0) / 22 / 8);
+        return s + (r.otHours * hourlyRate * 1.5);
+      }, 0);
+  })();
   const totalBasic = payroll.reduce((s,p)=>s+p.basic,0);
   const totalAllow = payroll.reduce((s,p)=>s+(p.housing||0)+(p.transport||0)+(p.food||0)+(p.other||0)+(p.florist||0),0);
   const totalDeduct = payroll.reduce((s,p)=>s+(p.deductions||0)+(p.tax||0),0);
@@ -9706,6 +10084,7 @@ function renderMobileApp() {
   const qrData = emp ? `SQUAD-EMP:${emp.id}:${emp.name}:${emp.dept}` : 'SQUAD-QR';
   const featureCards = [
     {icon:'📍', title:'Mobile Attendance', desc:'Check in & out using GPS from your phone. Your location is recorded automatically.', action:'checkInGPS', actionLabel:'Check In Now', color:'#7F8D74'},
+    {icon:'⏱️', title:'OT Request', desc:'Submit overtime requests with work details and proof. Track approval status instantly.', action:"navigate('my-ot')", actionLabel:'Request OT', color:'#8B5CF6'},
     {icon:'🏖️', title:'Leave Request', desc:'Submit leave requests from your phone anytime. Track approval status in real time.', action:"navigate('my-leave')", actionLabel:'Apply for Leave', color:'#F59E0B'},
     {icon:'💰', title:'Payslip Download', desc:'Access and download your payslips instantly. View salary breakdown for any month.', action:"navigate('my-payslips')", actionLabel:'View Payslips', color:'#10B981'},
     {icon:'📅', title:'Shift Calendar', desc:'See your upcoming shifts and duty roster for the week ahead.', action:"navigate('duty-roster')", actionLabel:'View Roster', color:'#6366F1'},
@@ -13838,6 +14217,8 @@ function computeNotifications() {
 
   // Pending leave approvals
   const pendLeave = leaves.filter(l=>l.status==='pending');
+  const pendOT = otRequests.filter(r => r.status === 'pending');
+  if(pendOT.length) notifs.push({icon:'⏱️',color:'#8B5CF6',title:`${pendOT.length} OT request${pendOT.length>1?'s':''} awaiting approval`,sub:'Tap to review',action:()=>navigate('ot-requests')});
   if(pendLeave.length) notifs.push({icon:'📅',color:'#F59E0B',title:`${pendLeave.length} leave request${pendLeave.length>1?'s':''} awaiting approval`,sub:'Tap to review',action:()=>navigate('leave')});
 
   // Late attendance today (employees with no attendance record today)
