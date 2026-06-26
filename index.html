@@ -16743,5 +16743,45 @@ function showToast(msg) {
   </div>
 </div>
 
+<script>
+// Failsafe login — runs after all scripts, works even if earlier JS errors occur
+(function() {
+  var CREDS = {
+    admin: { email: 'admin@squad.hr', password: 'admin123' },
+    hr:    { email: 'hr@squad.hr',    password: 'hr123' }
+  };
+  function fillAndLogin(email, pwd) {
+    var eEl = document.getElementById('login-email');
+    var pEl = document.getElementById('login-pwd');
+    if (eEl) eEl.value = email;
+    if (pEl) pEl.value = pwd;
+    if (typeof doLogin === 'function') { doLogin(); return; }
+    // fallback: manual login check
+    var USERS2 = [
+      {email:'admin@squad.hr', password:'admin123', name:'Admin User', role:'admin', empId:null, system:true},
+      {email:'hr@squad.hr',    password:'hr123',    name:'HR Manager', role:'hr',    empId:null, system:true}
+    ];
+    var user = USERS2.find(function(u){ return u.email===email && u.password===pwd; });
+    if (!user) return;
+    var ls = document.getElementById('login-screen');
+    var sb = document.getElementById('sidebar');
+    var hd = document.getElementById('header');
+    var mc = document.getElementById('main-content');
+    if (ls) ls.style.display = 'none';
+    if (sb) sb.style.display = '';
+    if (hd) hd.style.display = '';
+    if (mc) mc.style.display = '';
+    window.currentUser = user;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    var btns = document.querySelectorAll('.login-hint button');
+    if (btns[0]) btns[0].addEventListener('click', function(){ fillAndLogin(CREDS.admin.email, CREDS.admin.password); });
+    if (btns[1]) btns[1].addEventListener('click', function(){ fillAndLogin(CREDS.hr.email, CREDS.hr.password); });
+    var signInBtn = document.querySelector('.btn.btn-primary[onclick="doLogin()"]');
+    if (signInBtn) signInBtn.addEventListener('click', function(){ if(typeof doLogin==='function') doLogin(); });
+  });
+})();
+</script>
+
 </body>
 </html>
