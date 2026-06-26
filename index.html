@@ -414,11 +414,11 @@ select.form-input option{background:var(--s2);}
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px;margin-top:8px" onclick="doLogin()">Sign In →</button>
     <div class="login-hint">
       <div class="login-hint-title">Quick Sign In — tap a role below</div>
-      <button type="button" onclick="quickLogin('admin@squad.hr','Admin@2026')" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(127,141,116,.12);border:1px solid rgba(127,141,116,.2);border-radius:9px;padding:10px 14px;cursor:pointer;margin-bottom:6px;font-family:inherit;">
+      <button type="button" onclick="quickLogin('admin@squad.hr','admin123')" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(127,141,116,.12);border:1px solid rgba(127,141,116,.2);border-radius:9px;padding:10px 14px;cursor:pointer;margin-bottom:6px;font-family:inherit;">
         <span style="font-size:13px;font-weight:700;color:#0F172A;">Admin</span>
         <span style="font-size:11px;color:#7F8D74;font-weight:600;">Full Access →</span>
       </button>
-      <button type="button" onclick="quickLogin('hr@squad.hr','HR@2026')" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:9px;padding:10px 14px;cursor:pointer;font-family:inherit;">
+      <button type="button" onclick="quickLogin('hr@squad.hr','hr123')" style="width:100%;display:flex;justify-content:space-between;align-items:center;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:9px;padding:10px 14px;cursor:pointer;font-family:inherit;">
         <span style="font-size:13px;font-weight:700;color:#0F172A;">HR Manager</span>
         <span style="font-size:11px;color:#818CF8;font-weight:600;">HR Access →</span>
       </button>
@@ -944,8 +944,8 @@ select.form-input option{background:var(--s2);}
 let currentUser = null;
 
 const USERS = [
-  {email:'admin@squad.hr', password:'Admin@2026', name:'Admin User', role:'admin', empId:null, system:true},
-  {email:'hr@squad.hr',    password:'HR@2026',    name:'HR Manager', role:'hr',    empId:null, system:true},
+  {email:'admin@squad.hr', password:'admin123', name:'Admin User', role:'admin', empId:null, system:true},
+  {email:'hr@squad.hr',    password:'hr123',    name:'HR Manager', role:'hr',    empId:null, system:true},
 ];
 
 // accountSettings: {email -> {enabled, role, lastLogin, forcePasswordReset}}
@@ -1017,18 +1017,23 @@ function doLogin() {
     const hdrAv = document.getElementById('hdr-av');
     hdrAv.textContent = ini; hdrAv.style.background = bg;
     updateNavForRole();
-    loadData();
+    try { loadData(); } catch(e) { console.warn('loadData error:', e); }
     page = (user.role === 'employee') ? 'my-profile' : 'dashboard';
-    render();
-    renderSidebarCalendar();
-    // Open Finance folder by default so Budget/Expenses is visible
-    setTimeout(()=>{ openFolder('fin'); updateNotifBadge(); }, 100);
-    // Load latest data from cloud (async — re-renders when done)
-    _loadFromCloud();
   } catch(e) {
     errEl.textContent = 'Login error: ' + (e.message || e);
     errEl.style.display = 'block';
+    return;
   }
+  // Auth succeeded — render errors must never revert to login screen
+  try { render(); } catch(e) {
+    console.warn('render error:', e);
+    document.getElementById('main').innerHTML = '<div style="padding:2rem;text-align:center;color:#888;font-family:sans-serif">Loading dashboard…<br><small style=\'color:#bbb\'>If this persists, try refreshing the page.</small></div>';
+  }
+  try { renderSidebarCalendar(); } catch(e) { console.warn('sidebar calendar error:', e); }
+  // Open Finance folder by default so Budget/Expenses is visible
+  setTimeout(()=>{ try { openFolder('fin'); } catch(e){} try { updateNotifBadge(); } catch(e){} }, 100);
+  // Load latest data from cloud (async — re-renders when done)
+  setTimeout(()=>{ try { _loadFromCloud(); } catch(e){ console.warn('cloud sync error:', e); } }, 500);
 }
 
 function doLogout() {
