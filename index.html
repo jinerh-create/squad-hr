@@ -6339,7 +6339,7 @@ function renderCompanySettings() {
         '<div style="font-size:11px;color:var(--t3)">Recommended: PNG, 200×200px+</div></div>' +
       '<div style="margin-bottom:12px"><label class="form-label">Primary Color</label>' +
         '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">' +
-          colors.map(function(cl){ return '<button onclick="setBrandColor('' + cl + '')" style="width:28px;height:28px;border-radius:50%;background:' + cl + ';border:3px solid ' + (b.primaryColor===cl?'var(--t)':'transparent') + ';cursor:pointer"></button>'; }).join('') +
+          colors.map(function(cl){ return '<button onclick="setBrandColor(\'' + cl + '\')" style="width:28px;height:28px;border-radius:50%;background:' + cl + ';border:3px solid ' + (b.primaryColor===cl?'var(--t)':'transparent') + ';cursor:pointer"></button>'; }).join('') +
           '<input type="color" value="' + (b.primaryColor||'#7F8D74') + '" onchange="setBrandColor(this.value)" style="width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;padding:0">' +
         '</div></div>' +
       '<div style="background:var(--s2);border:1px solid var(--b);border-radius:12px;padding:14px">' +
@@ -6362,7 +6362,7 @@ function renderCompanySettings() {
             '<div style="font-size:16px;font-weight:800;color:' + plan.color + '">' + plan.name + '</div>' +
             '<div style="font-size:18px;font-weight:900;margin:8px 0">' + plan.price + '</div>' +
             '<div style="font-size:11px;color:var(--t3);margin-bottom:12px">' + plan.emp + '</div>' +
-            '<button onclick="selectPlan('' + plan.id + '')" style="width:100%;padding:9px;background:' + (isActive?plan.color:'var(--s2)') + ';color:' + (isActive?'#fff':'var(--t)') + ';border:1px solid ' + plan.color + ';border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">' +
+            '<button onclick="selectPlan(\'' + plan.id + '\')" style="width:100%;padding:9px;background:' + (isActive?plan.color:'var(--s2)') + ';color:' + (isActive?'#fff':'var(--t)') + ';border:1px solid ' + plan.color + ';border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">' +
               (isActive ? '✓ Current Plan' : 'Select Plan') +
             '</button></div>';
         }).join('') +
@@ -6372,9 +6372,9 @@ function renderCompanySettings() {
     '<div class="card" style="padding:20px;margin-top:16px"><div class="card-title" style="margin-bottom:16px">🔒 Data & Privacy</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
         '<button class="btn btn-secondary" onclick="exportFullBackup()" style="justify-content:flex-start;gap:10px">📦 Export All Data</button>' +
-        '<button class="btn btn-secondary" onclick="navigate('sync')" style="justify-content:flex-start;gap:10px">☁️ Cloud Sync Settings</button>' +
+        '<button class="btn btn-secondary" onclick="navigate(\'sync\')" style="justify-content:flex-start;gap:10px">☁️ Cloud Sync Settings</button>' +
         '<button class="btn btn-ghost" onclick="resetToDefaults()" style="justify-content:flex-start;gap:10px;color:var(--red)">⚠️ Reset to Defaults</button>' +
-        '<button class="btn btn-ghost" onclick="window.open('mailto:support@squadhr.app')" style="justify-content:flex-start;gap:10px">💬 Contact Support</button>' +
+        '<button class="btn btn-ghost" onclick="window.open(\'mailto:support@squadhr.app\')" style="justify-content:flex-start;gap:10px">💬 Contact Support</button>' +
       '</div></div>';
 }
 
